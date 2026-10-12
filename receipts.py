@@ -9,6 +9,10 @@ Branch: axyl/receipts
 Route:  POST /receipts
 """
 
+import hashlib
+import hmac
+import json
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -36,10 +40,10 @@ def build_receipt(
     delivered: bool = True,
 ) -> DecisionReceipt:
     """
-    TODO: Implement from Product.md:
+    Builds a signed DecisionReceipt (Product.md).
 
     Signature:
-      HMAC-SHA256 over JSON of all fields except `signature`,
+      HMAC-SHA256 over canonical JSON of all fields except `signature`,
       using DEMO_SECRET.
 
     Liability (first match wins):
@@ -49,21 +53,58 @@ def build_receipt(
       4. mandate.max_amount > 10000 and all passed    → owner
       5. otherwise: agent_developer if any reason
          mentions "untrusted", else none
-
-    For the happy path demo, delivered=True + normal mandate
-    should produce liable_party="none".
     """
-    # STUB — replace with real logic
-    return DecisionReceipt(
+    liable_party, liability_reason = assign_liability(mandate, checks, route, delivered)
+
+    receipt = DecisionReceipt(
         request_id=purchase.request_id,
         mandate=mandate,
         purchase=purchase,
         checks=checks,
         route=route,
-        liable_party="none",
-        liability_reason="stub — not yet implemented",
-        signature="0000",
+        liable_party=liable_party,
+        liability_reason=liability_reason,
+        signature="",
     )
+    receipt.signature = sign_receipt(receipt)
+    return receipt
+
+
+def assign_liability(
+    mandate: Mandate,
+    checks: list[CheckResult],
+    route: str,
+    delivered: bool,
+) -> tuple[str, str]:
+    """Liability matrix — first match wins."""
+    if not delivered and route == "auto_approve":
+        return "seller", "Paid and not delivered."
+    if route == "auto_approve" and any(c.status == "block" for c in checks):
+        return "verifier", "Checker approved a bad purchase."
+    if route == "block":
+        return "none", "Money did not move."
+    if route == "hold":
+        return "none", "Waiting on a person."
+    if mandate.max_amount > 10000 and all(c.status == "pass" for c in checks):
+        return "owner", "Mandate is broad enough to allow a very large payment."
+    if any("untrusted" in r.lower() for c in checks for r in c.reasons):
+        return "agent_developer", "Agent acted on an instruction from untrusted content."
+    return "none", "Checks passed, no fault assigned."
+
+
+def sign_receipt(receipt: DecisionReceipt) -> str:
+    """HMAC-SHA256 hex over the canonical JSON of every field except `signature`."""
+    payload = json.dumps(
+        receipt.model_dump(exclude={"signature"}),
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hmac.new(DEMO_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+
+
+def verify_receipt(receipt: DecisionReceipt) -> bool:
+    """True if the receipt's signature matches its contents (i.e. not tampered)."""
+    return hmac.compare_digest(receipt.signature, sign_receipt(receipt))
 
 
 # ────────────────────────────────────────────────────────────────────

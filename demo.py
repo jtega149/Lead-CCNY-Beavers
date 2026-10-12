@@ -1,5 +1,5 @@
 """
-demo.py — Three demo scenarios from Product.md
+demo.py — Demo scenarios from Product.md, plus a not-delivered liability case
 Run with:  python demo.py   (while the server is up: uvicorn app:app --reload)
 
 Or import and call directly without the server:
@@ -141,7 +141,18 @@ LIMIT_DODGING = {
 
 
 # ────────────────────────────────────────────────────────────────────
-# Run all three
+# Scenario 4: Paid but not delivered (liability → seller)
+# ────────────────────────────────────────────────────────────────────
+
+NOT_DELIVERED = {
+    **GOOD_PURCHASE,
+    "purchase": {**GOOD_PURCHASE["purchase"], "request_id": "demo-undelivered-004"},
+    "delivered": False,
+}
+
+
+# ────────────────────────────────────────────────────────────────────
+# Run all four
 # ────────────────────────────────────────────────────────────────────
 
 def run_all():
@@ -155,6 +166,9 @@ def run_all():
 
     result3 = _post("/judge", LIMIT_DODGING)
     pp("Scenario 3: LIMIT-DODGING SCAM  (expect: block, no settlement)", result3)
+
+    result4 = _post("/judge", NOT_DELIVERED)
+    pp("Scenario 4: PAID, NOT DELIVERED  (expect: auto_approve, liable=seller)", result4)
 
     print(f"\n{'='*60}")
     print("  Demo complete!")
