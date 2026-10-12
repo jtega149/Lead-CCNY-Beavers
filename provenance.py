@@ -10,6 +10,7 @@ Route:  POST /provenance
 """
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 from models import CheckResult, Mandate, PurchaseRequest
 
 router = APIRouter(tags=["provenance"])
@@ -21,23 +22,47 @@ router = APIRouter(tags=["provenance"])
 
 def check_provenance(purchase: PurchaseRequest, mandate: Mandate) -> CheckResult:
     """
-    TODO: Implement the three rules from Product.md:
+    Checks the provenance of the purchase instruction (prompt-injection detection).
 
+    Rules:
     1. instruction_source == "owner" AND in mandate.trusted_instruction_sources
-       → pass, risk 5
+       → pass, risk 5. Reason: Instruction came from the owner.
     2. instruction_source in {"webpage", "email", "chat"}
-       → block, risk 95
-    3. anything else
-       → flag, risk 50
+       → block, risk 95. Reason: Pay instruction came from untrusted content ({purchase.instruction_source}), which is the prompt-injection case.
+    3. Any other source
+       → flag, risk 50. Reason: Instruction source is unverified.
 
-    Always include purchase.instruction_text in the reasons list.
+    Always echo purchase.instruction_text inside the reasons list.
     """
-    # STUB — replace with real logic
+    source = purchase.instruction_source.strip().lower() if purchase.instruction_source else ""
+    trusted = [s.strip().lower() for s in (mandate.trusted_instruction_sources or [])]
+
+    if source == "owner" and source in trusted:
+        status = "pass"
+        risk = 5
+        reason = "Instruction came from the owner."
+    elif source in {"webpage", "email", "chat"}:
+        status = "block"
+        risk = 95
+        reason = (
+            f"Pay instruction came from untrusted content ({purchase.instruction_source}), "
+            f"which is the prompt-injection case."
+        )
+    else:
+        status = "flag"
+        risk = 50
+        reason = "Instruction source is unverified."
+
+    reasons = [
+        reason,
+        f"Instruction text: {purchase.instruction_text}",
+    ]
+
     return CheckResult(
         check_name="provenance",
-        status="pass",
-        risk=0,
-        reasons=["stub — not yet implemented"],
+        status=status,
+        risk=risk,
+        reasons=reasons,
     )
 
 
@@ -45,12 +70,10 @@ def check_provenance(purchase: PurchaseRequest, mandate: Mandate) -> CheckResult
 # Route — for standalone testing before the merge
 # ────────────────────────────────────────────────────────────────────
 
-from pydantic import BaseModel as _BM
-
-
-class _ProvenanceIn(_BM):
+class _ProvenanceIn(BaseModel):
     purchase: PurchaseRequest
     mandate: Mandate
+
 
 @router.post("/provenance", response_model=CheckResult)
 async def provenance_endpoint(body: _ProvenanceIn):
