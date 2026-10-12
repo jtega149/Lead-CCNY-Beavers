@@ -56,6 +56,7 @@ async def root(request: Request):
         "ui": "/ui",
         "docs": "/docs",
         "routes": [
+            "GET  /demo/scenarios     — demo.py payloads for the UI",
             "POST /judge              — full pipeline (John)",
             "POST /provenance         — instruction source check (Aditya)",
             "POST /verify             — mandate match check (Taamim)",
@@ -75,6 +76,18 @@ async def serve_demo_ui():
     if os.path.exists("index.html"):
         return FileResponse("index.html")
     return JSONResponse(status_code=404, content={"error": "index.html not found"})
+
+
+@app.get("/demo/scenarios")
+async def demo_scenarios():
+    """The demo.py scenarios, so the frontend runs the same payloads as the CLI demo."""
+    from demo import GOOD_PURCHASE, LIMIT_DODGING, NOT_DELIVERED, PROMPT_INJECTION
+    return [
+        {"key": "good", "label": "Good purchase", "expect": "auto_approve", "payload": GOOD_PURCHASE},
+        {"key": "inject", "label": "Prompt injection", "expect": "block", "payload": PROMPT_INJECTION},
+        {"key": "dodge", "label": "Limit-dodging scam", "expect": "block", "payload": LIMIT_DODGING},
+        {"key": "undelivered", "label": "Paid, not delivered", "expect": "auto_approve · seller liable", "payload": NOT_DELIVERED},
+    ]
 
 
 @app.get("/health")
