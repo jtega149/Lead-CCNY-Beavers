@@ -152,7 +152,22 @@ NOT_DELIVERED = {
 
 
 # ────────────────────────────────────────────────────────────────────
-# Run all four
+# Scenario 5: Off-task upsell (verifier flags it → held for a human)
+# ────────────────────────────────────────────────────────────────────
+
+OFF_TASK_UPSELL = {
+    **GOOD_PURCHASE,
+    "purchase": {
+        **GOOD_PURCHASE["purchase"],
+        "request_id": "demo-upsell-005",
+        "amount": 59.00,
+        "justification": "Lounge access to make the trip more comfortable.",
+    },
+}
+
+
+# ────────────────────────────────────────────────────────────────────
+# Run all five
 # ────────────────────────────────────────────────────────────────────
 
 def run_all():
@@ -169,6 +184,9 @@ def run_all():
 
     result4 = _post("/judge", NOT_DELIVERED)
     pp("Scenario 4: PAID, NOT DELIVERED  (expect: auto_approve, liable=seller)", result4)
+
+    result5 = _post("/judge", OFF_TASK_UPSELL)
+    pp("Scenario 5: OFF-TASK UPSELL  (expect: hold, waits for a human)", result5)
 
     print(f"\n{'='*60}")
     print("  Demo complete!")

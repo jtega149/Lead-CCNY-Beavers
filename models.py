@@ -43,7 +43,7 @@ class DecisionReceipt(BaseModel):
     mandate: Mandate
     purchase: PurchaseRequest
     checks: list[CheckResult]
-    route: str                                  # "auto_approve" | "hold" | "block"
+    route: str                                  # "auto_approve" | "hold" | "block" | "human_approve"
     liable_party: str                           # "none" | "seller" | "owner" | "verifier" | "agent_developer"
     liability_reason: str
     signature: str                              # hex hmac of the canonical json

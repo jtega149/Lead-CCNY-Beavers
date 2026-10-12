@@ -47,9 +47,10 @@ def build_receipt(
       using DEMO_SECRET.
 
     Liability (first match wins):
-      1. delivered=False and route=auto_approve       → seller
+      1. delivered=False and route approved           → seller
       2. any check is block and route=auto_approve    → verifier
       3. route is block or hold                       → none
+         route is human_approve                       → owner
       4. mandate.max_amount > 10000 and all passed    → owner
       5. otherwise: agent_developer if any reason
          mentions "untrusted", else none
@@ -77,7 +78,7 @@ def assign_liability(
     delivered: bool,
 ) -> tuple[str, str]:
     """Liability matrix — first match wins."""
-    if not delivered and route == "auto_approve":
+    if not delivered and route in ("auto_approve", "human_approve"):
         return "seller", "Paid and not delivered."
     if route == "auto_approve" and any(c.status == "block" for c in checks):
         return "verifier", "Checker approved a bad purchase."
@@ -85,6 +86,8 @@ def assign_liability(
         return "none", "Money did not move."
     if route == "hold":
         return "none", "Waiting on a person."
+    if route == "human_approve":
+        return "owner", "Owner overrode a payment the layer held for review."
     if mandate.max_amount > 10000 and all(c.status == "pass" for c in checks):
         return "owner", "Mandate is broad enough to allow a very large payment."
     if any("untrusted" in r.lower() for c in checks for r in c.reasons):

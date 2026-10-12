@@ -7,9 +7,12 @@ Run:
 """
 
 import os
+from pathlib import Path
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="Judgment & Accountability Layer · Mastercard & Azure Cloud",
@@ -43,6 +46,10 @@ app.include_router(ap4m_router)
 app.include_router(agent_pay_router)
 
 
+# ── Frontend assets (index.html loads static/css and static/js) ─────
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
+
+
 # ── Frontend & Health Endpoints ─────────────────────────────────────
 @app.get("/")
 async def root(request: Request):
@@ -56,7 +63,9 @@ async def root(request: Request):
         "ui": "/ui",
         "docs": "/docs",
         "routes": [
+            "GET  /demo/scenarios     — demo.py payloads for the UI",
             "POST /judge              — full pipeline (John)",
+            "POST /judge/{id}/decision — human approves / rejects a held payment",
             "POST /provenance         — instruction source check (Aditya)",
             "POST /verify             — mandate match check (Taamim)",
             "POST /risk               — seller & pattern check (Zuzu)",
@@ -75,6 +84,19 @@ async def serve_demo_ui():
     if os.path.exists("index.html"):
         return FileResponse("index.html")
     return JSONResponse(status_code=404, content={"error": "index.html not found"})
+
+
+@app.get("/demo/scenarios")
+async def demo_scenarios():
+    """The demo.py scenarios, so the frontend runs the same payloads as the CLI demo."""
+    from demo import GOOD_PURCHASE, LIMIT_DODGING, NOT_DELIVERED, OFF_TASK_UPSELL, PROMPT_INJECTION
+    return [
+        {"key": "good", "label": "Good purchase", "expect": "auto_approve", "payload": GOOD_PURCHASE},
+        {"key": "inject", "label": "Prompt injection", "expect": "block", "payload": PROMPT_INJECTION},
+        {"key": "dodge", "label": "Limit-dodging scam", "expect": "block", "payload": LIMIT_DODGING},
+        {"key": "undelivered", "label": "Paid, not delivered", "expect": "auto_approve · seller liable", "payload": NOT_DELIVERED},
+        {"key": "upsell", "label": "Off-task upsell", "expect": "hold · ask the owner", "payload": OFF_TASK_UPSELL},
+    ]
 
 
 @app.get("/health")

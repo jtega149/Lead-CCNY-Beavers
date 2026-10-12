@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agentic Trust Layer · Demo</title>
+<style>
+:root{--bg:#07080c;--panel:#0e1118;--panel2:#141824;--line:rgba(255,255,255,.08);--tx:#eef1f6;--mu:#8b94a5;--red:#eb001b;--org:#f79e1b;--ok:#35d07f;--warn:#ffb020;--bad:#ff4d4f;--grad:linear-gradient(135deg,#eb001b,#f79e1b)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.bg{position:fixed;inset:0;pointer-events:none;background:radial-gradient(900px 520px at 12% -8%,rgba(235,0,27,.20),transparent 60%),radial-gradient(800px 500px at 100% 8%,rgba(247,158,27,.13),transparent 60%)}
+.wrap{position:relative;max-width:1260px;margin:0 auto;padding:0 24px 40px}
+button{font:inherit;cursor:pointer;color:inherit}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 0}
+.brand{display:flex;gap:12px;align-items:center}.brand b{font-size:16px;letter-spacing:.2px;display:block}.brand span{color:var(--mu);font-size:12px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{background:none;border:0;padding:8px 14px;border-radius:9px;color:var(--mu);text-align:left;line-height:1.2}
+.seg button small{display:block;font-size:11px;opacity:.8}.seg button.on{background:var(--panel2);color:var(--tx);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.ctl{display:flex;gap:8px}
+.cta{background:var(--grad);border:0;color:#fff;font-weight:700;padding:10px 18px;border-radius:11px;box-shadow:0 6px 24px rgba(235,0,27,.35)}
+.cta:disabled{opacity:.55;cursor:default}.ghost{background:transparent;border:1px solid var(--line);padding:10px 14px;border-radius:11px;color:var(--mu)}
+.hero{padding:6px 0 22px;max-width:820px}.hero h1{font-size:34px;line-height:1.12;margin:0 0 8px;letter-spacing:-.6px}
+.hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{color:var(--mu);margin:0;font-size:15px}
+.grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.phonewrap{justify-self:center}.hero h1{font-size:26px}}
+.phonewrap{position:sticky;top:12px}
+.cap{text-align:center;color:var(--mu);font-size:12px;margin-top:10px;letter-spacing:.6px;text-transform:uppercase}
+/* phone */
+.phone{--ptx:#12141a;--pmu:#6b7385;--pln:#e7e9f0;width:380px;height:760px;margin:0 auto;border-radius:50px;background:#05060a;padding:10px;position:relative;box-shadow:0 0 0 2px #232735,0 40px 90px rgba(0,0,0,.6),0 0 80px rgba(235,0,27,.12);display:flex;flex-direction:column;color:var(--ptx)}
+.screen{flex:1;background:#f5f6fa;border-radius:40px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.notch{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:104px;height:28px;background:#05060a;border-radius:20px;z-index:5}
+.sbar{height:48px;padding:16px 30px 0;display:flex;justify-content:space-between;font-size:13px;font-weight:600;flex:none}
+.views{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;display:none;flex-direction:column}.view.on{display:flex}
+.ahead{padding:6px 16px 10px;display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--pln);background:#fff}
+.av{width:38px;height:38px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#fff;flex:none}
+.ahead b{display:block;font-size:15px}.ahead span{font-size:11px;color:var(--pmu)}
+.mand{margin:8px 14px 0;padding:7px 10px;border-radius:10px;background:#fff;border:1px solid var(--pln);font-size:11.5px;color:var(--pmu);display:flex;gap:6px;align-items:center}
+.mand b{color:var(--ptx)}
+.msgs{flex:1;overflow-y:auto;padding:8px 14px;scroll-behavior:smooth}
+.m{max-width:86%;padding:10px 13px;border-radius:18px;margin:7px 0;animation:in .35s ease;font-size:14px}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.m.a{background:#fff;border:1px solid var(--pln);border-top-left-radius:6px}
+.m.u{background:var(--grad);color:#fff;margin-left:auto;border-top-right-radius:6px}
+.m.wide{max-width:97%;padding:0;overflow:hidden}
+.m.sys{max-width:100%;background:none;border:0;color:var(--pmu);font-size:11.5px;text-align:center;padding:2px}
+.dots{display:inline-flex;gap:4px}.dots i{width:6px;height:6px;border-radius:50%;background:#aab;animation:b 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{transform:translateY(-4px);opacity:.5}}
+.chips{padding:4px 14px 6px;display:flex;gap:6px;flex-wrap:wrap}
+.chips button{background:#fff;border:1px solid var(--pln);border-radius:99px;padding:6px 11px;font-size:12px;color:var(--ptx)}
+.composer{display:flex;gap:8px;padding:8px 14px 12px}
+.composer input{flex:1;border:1px solid var(--pln);background:#fff;border-radius:99px;padding:11px 15px;font:inherit;color:var(--ptx);outline:0;min-width:0}
+.composer button{width:42px;border:0;border-radius:50%;background:var(--grad);color:#fff;font-size:18px}
+.tkt{background:#fff}.tk-h{background:#12141a;color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.tk-h small{opacity:.65;display:block;font-size:11px}.tag{font-size:10.5px;background:rgba(255,255,255,.14);padding:3px 8px;border-radius:99px}
+.route{display:flex;align-items:center;gap:10px;padding:14px 14px 4px}.route b{font-size:26px;letter-spacing:1px}
+.route .ln{flex:1;border-top:2px dashed #cfd3df;position:relative}.route .ln:after{content:"✈";position:absolute;left:50%;top:-12px;transform:translateX(-50%);background:#fff;padding:0 6px;color:var(--red)}
+.sch{padding:0 14px 12px;font-size:12px;color:var(--pmu)}
+.perf{border-top:2px dashed #e2e5ee;margin:0 12px;position:relative}
+.perf:before,.perf:after{content:"";position:absolute;top:-9px;width:16px;height:16px;border-radius:50%;background:#f5f6fa}.perf:before{left:-20px}.perf:after{right:-20px}
+.li{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 14px;color:var(--pmu)}.li.t{color:var(--ptx);font-weight:700;font-size:20px;padding:6px 14px 2px}
+.okp{margin:6px 14px;font-size:11.5px;color:#0b8a4a;background:#e7f8ef;border-radius:8px;padding:6px 9px}
+.cn{font-size:11px;color:var(--pmu);padding:0 14px 8px}
+.acts{display:flex;gap:8px;padding:6px 14px 14px}.acts button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--pln);background:#fff;font-weight:600;color:var(--ptx)}
+.acts button.p{background:var(--grad);border:0;color:#fff}.acts button:disabled{opacity:.5}
+.rcpt{padding:12px 14px;background:#fff}.rcpt .ok{display:flex;gap:8px;align-items:center;font-weight:700}
+.rcpt .ok i{width:22px;height:22px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-style:normal;font-size:13px}
+.seal{margin-top:8px;font-size:11px;color:var(--pmu);background:#f2f4f9;border-radius:8px;padding:6px 8px}
+.warnbox{padding:12px 14px;background:#fff;border-left:4px solid var(--bad)}.warnbox b{display:block;margin-bottom:2px}
+.tabbar{height:70px;background:#fff;border-top:1px solid var(--pln);display:flex;padding:8px 14px 18px;flex:none}
+.tabbar button{flex:1;background:none;border:0;color:var(--pmu);font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button.on{color:var(--red);font-weight:700}.tabbar svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.list{padding:8px 14px;overflow-y:auto;flex:1}.view h3{margin:6px 16px 0;font-size:20px}
+.row{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--pln);border-radius:14px;padding:10px 12px;margin:8px 0;animation:in .3s}
+.row .ic{width:36px;height:36px;border-radius:50%;background:#eef0f6;display:grid;place-items:center;font-weight:700;color:var(--pmu);flex:none}
+.row .mid{flex:1;min-width:0}.row .mid b{display:block;font-size:13.5px}.row .mid span{font-size:11.5px;color:var(--pmu)}
+.row .amt{text-align:right;font-weight:700;font-size:13.5px}
+.bd{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:3px}
+.bd.ok{background:#e7f8ef;color:#0b8a4a}.bd.warn{background:#fff3dc;color:#a96500}.bd.bad{background:#ffe5e6;color:#c4161c}.bd.nt{background:#eef0f6;color:var(--pmu)}
+.lk{background:none;border:0;color:var(--red);font-size:11.5px;font-weight:700;padding:3px 0}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;box-shadow:0 -20px 60px rgba(0,0,0,.25);padding:16px 18px 24px;transform:translateY(105%);transition:transform .38s cubic-bezier(.2,.8,.2,1);z-index:4;max-height:86%;overflow:auto}
+.sheet.on{transform:none}.sheet h4{margin:0 0 4px;font-size:17px}.sheet .grip{width:40px;height:4px;background:#d9dce6;border-radius:9px;margin:-6px auto 12px}
+.sheet p{color:var(--pmu);font-size:12.5px;margin:2px 0 10px}
+.rs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.rs button{background:#fff;border:1px solid var(--pln);border-radius:99px;padding:6px 11px;font-size:12px}
+.rs button.on{background:#12141a;color:#fff;border-color:#12141a}
+.sheet textarea{width:100%;border:1px solid var(--pln);border-radius:12px;padding:10px;font:inherit;min-height:70px;resize:none;outline:0}
+.sheet .big{width:100%;margin-top:10px;padding:13px;border:0;border-radius:13px;background:var(--grad);color:#fff;font-weight:700}
+.bio{width:84px;height:84px;margin:10px auto;border-radius:50%;display:grid;place-items:center;border:2px solid var(--red);color:var(--red);position:relative;cursor:pointer;background:none}
+.bio svg{width:42px;height:42px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round}
+.bio.scan:after{content:"";position:absolute;inset:-2px;border-radius:50%;border:3px solid transparent;border-top-color:var(--ok);animation:sp .7s linear infinite}
+.bio.done{border-color:var(--ok);color:var(--ok)}@keyframes sp{to{transform:rotate(360deg)}}
+/* control room */
+.panel{display:grid;gap:14px}
+.cd{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:16px 18px}
+.cd h5{margin:0 0 12px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mu);display:flex;justify-content:space-between;align-items:center}
+.live{display:inline-flex;gap:6px;align-items:center;color:var(--ok)}.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(53,208,127,.6);animation:pu 1.8s infinite}
+@keyframes pu{70%{box-shadow:0 0 0 8px rgba(53,208,127,0)}100%{box-shadow:0 0 0 0 rgba(53,208,127,0)}}
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.nd{text-align:center;position:relative;padding:0 2px}
+.nd:not(:last-child):after{content:"";position:absolute;top:21px;left:calc(50% + 24px);right:calc(-50% + 24px);height:2px;background:var(--line)}
+.nd .ci{width:44px;height:44px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:#171b27;border:1.5px solid var(--line);color:var(--mu);transition:.35s}
+.nd svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nd b{display:block;font-size:11.5px}.nd small{display:block;font-size:10.5px;color:var(--mu);min-height:28px;margin-top:2px}
+.nd.run .ci{border-color:var(--org);color:var(--org);box-shadow:0 0 0 6px rgba(247,158,27,.14);animation:pu2 1s infinite}
+@keyframes pu2{50%{box-shadow:0 0 0 10px rgba(247,158,27,.05)}}
+.nd.ok .ci{border-color:var(--ok);color:var(--ok);background:rgba(53,208,127,.1)}.nd.ok:after{background:var(--ok)!important}
+.nd.warn .ci{border-color:var(--warn);color:var(--warn);background:rgba(255,176,32,.1)}.nd.bad .ci{border-color:var(--bad);color:var(--bad);background:rgba(255,77,79,.1)}
+.two{display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:center}@media(max-width:600px){.two{grid-template-columns:1fr}}
+.gauge{position:relative;text-align:center}.gauge svg{width:100%}.gauge .n{position:absolute;left:0;right:0;bottom:6px;font-size:40px;font-weight:800;letter-spacing:-1px}.gauge .n small{display:block;font-size:10.5px;font-weight:500;color:var(--mu);letter-spacing:.8px;text-transform:uppercase;margin-top:-6px}
+.verdict{display:inline-block;padding:5px 12px;border-radius:99px;font-weight:700;font-size:12.5px;border:1px solid var(--line);color:var(--mu)}
+.verdict.ok{color:var(--ok);border-color:var(--ok);background:rgba(53,208,127,.08)}.verdict.warn{color:var(--warn);border-color:var(--warn);background:rgba(255,176,32,.08)}.verdict.bad{color:var(--bad);border-color:var(--bad);background:rgba(255,77,79,.08)}
+.kv{display:flex;gap:18px;margin:10px 0;color:var(--mu);font-size:12px}.kv b{display:block;color:var(--tx);font-size:16px}
+.sg{display:grid;grid-template-columns:110px 1fr 34px;gap:6px 10px;align-items:center;font-size:12px;color:var(--mu)}
+.tr{height:7px;background:#1a1f2d;border-radius:9px;overflow:hidden}.fl{height:100%;width:0;border-radius:9px;background:var(--grad);transition:width .9s cubic-bezier(.2,.8,.2,1)}.sg span:last-child{text-align:right;color:var(--tx)}
+ul.rs2{margin:0;padding-left:18px;color:var(--mu);font-size:12.5px}ul.rs2 li{margin:3px 0}ul.rs2 li b{color:var(--tx)}
+.led{font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mu)}.led b{color:var(--tx);font-weight:500}.led .lock{color:var(--ok)}
+.log{font:11.5px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:170px;overflow:auto}
+.log div{animation:in .3s;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.log i{font-style:normal;opacity:.55;margin-right:8px}.log b{color:var(--tx);margin-right:8px;font-weight:600}
+.log .warn b{color:var(--warn)}.log .bad b{color:var(--bad)}.log .ok b{color:var(--ok)}
+.rt svg{width:100%;height:auto}.rt .pill rect{fill:#171b27;stroke:var(--line);transition:.4s}.rt .pill text{fill:var(--mu);font-size:12px;font-weight:600}
+.rt .pill.pri rect{stroke:var(--org);fill:rgba(247,158,27,.12);filter:drop-shadow(0 0 8px rgba(247,158,27,.5))}.rt .pill.pri text{fill:#fff}.rt .pill.nt rect{stroke:#4b5367}.rt .pill.nt text{fill:var(--tx)}
+.rt path{fill:none;stroke:#252b3b;stroke-width:1.6;transition:.4s}.rt path.pri{stroke:var(--org);stroke-width:2.6;stroke-dasharray:6 5;animation:fl 1s linear infinite}.rt path.nt{stroke:#5a627a;stroke-dasharray:3 5}
+@keyframes fl{to{stroke-dashoffset:-22}}.rtx{color:var(--mu);font-size:12.5px;margin-top:6px}.rtx b{color:var(--tx)}
+footer{color:var(--mu);font-size:11.5px;text-align:center;margin-top:26px}
+</style></head><body><div class="bg"></div>
+<div class="wrap">
+<header>
+ <div class="brand"><svg viewBox="0 0 32 32" width="36" height="36"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eb001b"/><stop offset="1" stop-color="#f79e1b"/></linearGradient></defs><path d="M16 2l11 4v9c0 7-4.700 12.200-11 15C9.700 27.200 5 22 5 15V6z" fill="url(#g)"/><path d="M11 16l3.500 3.500L21.500 12" stroke="#fff" stroke-width="2.600" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div><b>Agentic Trust Layer</b><span>Guardian for agent-initiated payments · prototype</span></div></div>
+ <div class="seg" id="scn">
+  <button data-s="1" class="on">Typical purchase<small>In character</small></button>
+  <button data-s="2">Out of character<small>Friendly-fraud risk</small></button>
+  <button data-s="3">Rogue agent<small>Compromise</small></button></div>
+ <div class="ctl"><button class="cta" id="play">▶ Play story</button><button class="ghost" id="reset">Reset</button></div>
+</header>
+<div class="hero"><h1>Agents can buy. Now every purchase can be <em>explained</em>, <em>verified</em> and <em>defended</em>.</h1>
+<p>Before a purchase: a clear summary and explicit consent. After it: a risk verdict, sealed evidence, and disputes routed to the right party.</p></div>
+
+<div class="grid">
+<div class="phonewrap"><div class="phone"><div class="screen"><div class="notch"></div>
+ <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+ <div class="views">
+  <div class="view on" id="v-chat">
+   <div class="ahead"><div class="av"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.300 6.700L21 11l-6.700 2.300L12 20l-2.300-6.700L3 11l6.700-2.300z"/></svg></div><div><b>Pay Agent</b><span>Acts only within your limits</span></div></div>
+   <div class="mand">🛡 <span>Mandate: <b>Travel</b> · up to <b>$600</b> · <b>asks before every purchase</b></span></div>
+   <div class="msgs" id="msgs"></div><div class="chips" id="chips"></div>
+   <form class="composer" id="cmp"><input id="inp" placeholder="Ask your agent to buy something…" autocomplete="off"><button>↑</button></form>
+  </div>
+  <div class="view" id="v-act"><h3>Activity</h3><div class="list" id="actList"></div></div>
+  <div class="view" id="v-dis"><h3>Disputes</h3><div class="list" id="disList"></div></div>
+  <div class="sheet" id="sheet"></div>
+ </div>
+ <div class="tabbar" id="tabs">
+  <button data-v="chat" class="on"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>Agent</button>
+  <button data-v="act"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Activity</button>
+  <button data-v="dis"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z"/></svg>Disputes</button></div>
+</div></div><div class="cap">Customer experience</div></div>
+
+<div class="panel">
+ <div class="cd"><h5>Trust Layer pipeline <span class="live">live</span></h5><div class="pipe" id="pipe"></div></div>
+ <div class="cd"><h5>Risk verdict <span id="vsrc" style="text-transform:none;letter-spacing:0">analyst view · never shown to customers</span></h5>
+  <div class="two"><div class="gauge"><svg viewBox="0 0 120 70"><path d="M10 62A50 50 0 0 1 110 62" fill="none" stroke="#1a1f2d" stroke-width="10" stroke-linecap="round"/><path id="garc" d="M10 62A50 50 0 0 1 110 62" fill="none" stroke="#35d07f" stroke-width="10" stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" style="transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1),stroke .4s"/></svg><div class="n"><span id="gnum">–</span><small>risk score</small></div></div>
+  <div><span class="verdict" id="vd">Waiting for an agent transaction…</span>
+   <div class="kv"><div><b id="klk">–</b>likelihood</div><div><b id="kfl">–</b>flagged</div></div>
+   <ul class="rs2" id="rsn"><li>Signals appear here as soon as a purchase is scored.</li></ul></div></div></div>
+ <div class="cd"><h5>Behavioral signals vs. this customer's history</h5><div class="sg" id="sg"></div></div>
+ <div class="cd"><h5>Evidence ledger <span style="text-transform:none;letter-spacing:0">defends against false disputes</span></h5><div class="led" id="led">No confirmation on record yet.</div></div>
+ <div class="cd rt"><h5>Dispute routing</h5>
+  <svg viewBox="0 0 520 190" id="rsvg">
+   <g class="pill" id="p-o"><rect x="10" y="78" width="120" height="34" rx="17"/><text x="70" y="99" text-anchor="middle">Customer dispute</text></g>
+   <path id="l-issuer" d="M130 95C250 95 250 28 370 28"/><path id="l-merchant" d="M130 95C250 95 250 75 370 75"/><path id="l-mastercard" d="M130 95C250 95 250 123 370 123"/><path id="l-agent_provider" d="M130 95C250 95 250 170 370 170"/>
+   <g class="pill" id="p-issuer"><rect x="370" y="11" width="140" height="34" rx="17"/><text x="440" y="32" text-anchor="middle">Issuing bank</text></g>
+   <g class="pill" id="p-merchant"><rect x="370" y="58" width="140" height="34" rx="17"/><text x="440" y="79" text-anchor="middle">Merchant</text></g>
+   <g class="pill" id="p-mastercard"><rect x="370" y="106" width="140" height="34" rx="17"/><text x="440" y="127" text-anchor="middle">Mastercard</text></g>
+   <g class="pill" id="p-agent_provider"><rect x="370" y="153" width="140" height="34" rx="17"/><text x="440" y="174" text-anchor="middle">Agent provider</text></g></svg>
+  <div class="rtx" id="rtx">Submit a dispute in the app to see where it goes and why.</div></div>
+ <div class="cd"><h5>Event stream <span style="text-transform:none;letter-spacing:0">Event Grid → Sentinel</span></h5><div class="log" id="log"></div></div>
+</div></div>
+<footer>Prototype · simulated customers, merchants and scores · architecture on Azure AI Foundry, Entra, Event Grid, Cosmos DB, Sentinel, Power BI</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=n=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cl=x=>Math.max(0,Math.min(1,x)),med=a=>{const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const hrs=new Set([...Array(15).keys()].map(i=>i+8));
+
+/* ======== SWAP POINT: this local engine mirrors friendly_fraud.py. To go live, replace
+   score(), routeDispute() and the offer search with calls to the FastAPI services. ======== */
+const PROF={
+ F:{amounts:[320,410,52,48,45,480,60,390,55,520,50,445],merchants:new Set(['southwest','united','delta','kroger']),cats:{4511:6,5411:10,5812:6},countries:new Set(['US']),hours:hrs,d90:0},
+ E:{amounts:[42,55,38,61,47,52,49,58,44,50],merchants:new Set(['kroger','chipotle','shell']),cats:{4511:1,5411:18,5812:9,5541:5},countries:new Set(['US']),hours:hrs,d90:0}};
+const W={amount:.3,merchant:.15,category:.15,geo:.1,time:.05,ship:.1,vel:.05,disp:.1};
+const SIG={amount:'Amount vs. history',merchant:'Merchant familiarity',category:'Category rarity',geo:'Geography',time:'Time of day',ship:'Delivery address',vel:'Agent velocity',disp:'Dispute history'};
+function score(t,p){
+ const R=[],s={};let sg=.3;
+ if(p.amounts.length>=5){const m=med(p.amounts),mad=med(p.amounts.map(a=>Math.abs(a-m)))||Math.max(m*.1,1),z=(t.amount-m)/(1.4826*mad);
+  sg=cl((z-2)/4);if(sg>0)R.push(`Amount ${money(t.amount)} is ${z.toFixed(1)} robust std-devs above this customer's median ${money(m)}`)}
+ s.amount=sg;
+ s.merchant=p.merchants.has(t.mid)?0:1;if(s.merchant)R.push('First purchase from this merchant');
+ const tot=Object.values(p.cats).reduce((a,b)=>a+b,0);s.category=cl(1-((p.cats[t.mcc]||0)/tot)*10);if(s.category>.5)R.push(`Category ${t.mcc} is rare for this customer`);
+ s.geo=p.countries.has(t.country)?0:1;if(s.geo)R.push(`Merchant country ${t.country} is outside usual countries`);
+ s.time=p.hours.has(t.hour)?0:.5;if(s.time)R.push('Unusual time of day');
+ s.ship=t.ship?1:0;if(s.ship)R.push('Delivery destination differs from saved addresses');
+ s.vel=cl((t.vel-2)/5);if(s.vel>.4)R.push(`Agent made ${t.vel} purchase attempts in the last hour`);
+ s.disp=cl(p.d90/3);
+ const beh=Object.keys(W).reduce((a,k)=>a+W[k]*s[k],0);
+ const scope=t.mandateMax==null||t.amount>t.mandateMax||(t.cats&&!t.cats.includes(t.mcc));
+ if(scope)R.push(`Purchase falls outside the customer's mandate (${money(t.mandateMax||0)} limit, travel only)`);
+ if(!t.conf)R.push('No customer confirmation on record');
+ let lk=beh*(t.conf?1:.85);if(scope)lk*=.4;
+ const flag=lk>=.3&&beh>=.35&&!scope;
+ const label=scope&&beh>=.3?'agent_error_or_compromise':(flag?'friendly_fraud_likely':'normal');
+ return{score:Math.round(100*Math.max(beh,scope&&beh>=.3?.9:0)),lk:+cl(lk).toFixed(2),flag,label,reasons:R,scope,s};
+}
+const REASONS={unauthorized:'I never approved this',agent_exceeded_mandate:'Agent went beyond my limits',not_received:'Never received it',not_as_described:'Not as described',duplicate:'Duplicate charge',incorrect_amount:'Wrong amount',other:'Other'};
+const PN={issuer:'Issuing bank',merchant:'Merchant',mastercard:'Mastercard',agent_provider:'Agent provider'};
+function routeDispute(reason,t){
+ const f=t.res.flag,c=t.conf;
+ if(reason==='unauthorized'&&c&&f)return{p:'issuer',n:['mastercard'],w:0,ev:true,rule:'R1',why:'Customer says unauthorized, but a hash-bound confirmation exists and the model flags the purchase. Bank reviews with the evidence packet; the customer\'s rights are preserved.',a:['Attach confirmation + mandate','Queue for analyst review']};
+ if(reason==='unauthorized')return{p:'issuer',n:['mastercard','agent_provider'],w:0,ev:false,rule:'R2',why:'No confirmation on file, so this is treated as genuine fraud or agent compromise.',a:['Suspend agent token','Open compromise investigation']};
+ if(reason==='agent_exceeded_mandate')return{p:'issuer',n:['agent_provider','mastercard'],w:0,ev:true,rule:'R3',why:'The agent acted outside the customer\'s documented limits; the provider is accountable.',a:['Revoke or limit mandate','Notify agent provider']};
+ if(['not_received','not_as_described','duplicate','incorrect_amount'].includes(reason))return{p:'merchant',n:['issuer'],w:10,ev:true,rule:'R4',why:'Merchant-performance issue: merchant resolves first, then it escalates to the bank.',a:['Send case to merchant','Auto-escalate after 10 days']};
+ return{p:'issuer',n:[],w:0,ev:false,rule:'R5',why:'Unclassified: manual triage.',a:['Manual triage']};
+}
+const OFFERS=[{m:'Southwest Airlines',id:'southwest',b:388,t:41,f:[['Carry-on bag',0]],cp:'Free cancellation; credit valid 12 months'},
+ {m:'United Airlines',id:'united',b:452,t:47,f:[['Seat selection',18]],cp:'Full refund if cancelled within 24h'},
+ {m:'Delta Air Lines',id:'delta',b:561,t:52,f:[['Checked bag',35]],cp:'Non-refundable; change fees waived'}];
+const SC={1:{prof:'F',req:'Buy plane tickets in December to LA under $600'},2:{prof:'E',req:'Buy plane tickets in December to LA under $600'},3:{prof:'E',req:null}};
+const STAGES=[['Agent identity','<path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 3.600-6 8-6s8 2 8 6"/>'],['Mandate scope','<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.500"/>'],
+ ['Intent confirmed','<path d="M5 12l4.500 4.500L19 7"/>'],['Risk scoring','<path d="M3 12h4l3-7 4 14 3-7h4"/>'],['Evidence sealed','<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>']];
+
+let S={sc:1,txs:[],ds:[],pending:null,busy:false,playing:false,n:0};
+const ts=()=>new Date().toLocaleTimeString('en-US',{hour12:false});
+function log(svc,txt,k=''){const d=document.createElement('div');d.className=k;d.innerHTML=`<i>${ts()}</i><b>${svc}</b>${e(txt)}`;$('#log').prepend(d);while($('#log').children.length>40)$('#log').lastChild.remove()}
+const rid=()=>Math.random().toString(16).slice(2,10);
+
+/* ---------- UI helpers ---------- */
+function msg(k,html){const d=document.createElement('div');d.className='m '+k;d.innerHTML=html;$('#msgs').appendChild(d);$('#msgs').scrollTop=1e6;return d}
+async function typing(ms=900){const d=msg('a','<span class="dots"><i></i><i></i><i></i></span>');await sleep(ms);d.remove()}
+function showView(v){$$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v))}
+function sheet(html){$('#sheet').innerHTML='<div class="grip"></div>'+html;$('#sheet').classList.add('on')}
+const closeSheet=()=>$('#sheet').classList.remove('on');
+function renderChips(){const sc=SC[S.sc];$('#chips').innerHTML=sc.req?`<button data-q="${e(sc.req)}">${e(sc.req)}</button><button data-q="Buy plane tickets in December to LA under $400">…under $400</button>`:'<button id="rg">▶ Simulate an unprompted agent purchase</button>';
+ $$('#chips [data-q]').forEach(b=>b.onclick=()=>{if(!S.busy)ask(b.dataset.q)});if($('#rg'))$('#rg').onclick=rogue}
+function buildPipe(){$('#pipe').innerHTML=STAGES.map((s,i)=>`<div class="nd" id="n${i}"><div class="ci"><svg viewBox="0 0 24 24">${s[1]}</svg></div><b>${s[0]}</b><small>Waiting</small></div>`).join('')}
+function setNode(i,st,txt){const n=$('#n'+i);n.className='nd '+st;n.querySelector('small').textContent=txt}
+function resetPanel(){buildPipe();$('#garc').style.strokeDashoffset=157.1;$('#gnum').textContent='–';$('#vd').className='verdict';$('#vd').textContent='Waiting for an agent transaction…';
+ $('#klk').textContent=$('#kfl').textContent='–';$('#rsn').innerHTML='<li>Signals appear here as soon as a purchase is scored.</li>';
+ $('#sg').innerHTML=Object.keys(SIG).map(k=>`<span>${SIG[k]}</span><div class="tr"><div class="fl" id="b-${k}"></div></div><span id="v-${k}">–</span>`).join('');
+ $('#led').innerHTML='No confirmation on record yet.';routeClear()}
+function routeClear(){Object.keys(PN).forEach(k=>{$('#p-'+k).setAttribute('class','pill');$('#l-'+k).setAttribute('class','')});$('#rtx').innerHTML='Submit a dispute in the app to see where it goes and why.'}
+function showRoute(r){routeClear();$('#p-'+r.p).setAttribute('class','pill pri');$('#l-'+r.p).setAttribute('class','pri');
+ r.n.forEach(k=>{$('#p-'+k).setAttribute('class','pill nt');$('#l-'+k).setAttribute('class','nt')});
+ $('#rtx').innerHTML=`<b>Rule ${r.rule}</b> · primary: <b>${PN[r.p]}</b>${r.n.length?' · notified: '+r.n.map(k=>PN[k]).join(', '):''}${r.w?` · merchant window: <b>${r.w} days</b>`:''}<br>${e(r.why)}<br>Evidence packet: <b>${r.ev?'attached':'none'}</b> · Actions: ${r.a.join(' → ')}`}
+async function countTo(el,v){const s=performance.now();await new Promise(res=>{const f=n=>{const p=Math.min(1,(n-s)/900);el.textContent=Math.round(v*(1-Math.pow(1-p,3)));p<1?requestAnimationFrame(f):res()};requestAnimationFrame(f)})}
+const VD={normal:['ok','In character'],friendly_fraud_likely:['warn','Friendly-fraud risk'],agent_error_or_compromise:['bad','Agent error / compromise']};
+const ACT={normal:['No action required'],friendly_fraud_likely:['Flag for review','Attach evidence packet to any future dispute','Notify customer neutrally'],agent_error_or_compromise:['Suspend agent token','Alert Sentinel','Hold transaction and notify customer']};
+function showRisk(r){const [k,l]=VD[r.label],c=k==='ok'?'#35d07f':k==='warn'?'#ffb020':'#ff4d4f';
+ $('#garc').style.stroke=c;$('#garc').style.strokeDashoffset=157.1*(1-r.score/100);countTo($('#gnum'),r.score);
+ $('#vd').className='verdict '+k;$('#vd').textContent=l;$('#klk').textContent=r.lk.toFixed(2);$('#kfl').textContent=r.flag?'Yes':'No';
+ $('#rsn').innerHTML=(r.reasons.length?r.reasons.map(x=>`<li>${e(x)}</li>`).join(''):'<li>No unusual signals — consistent with this customer\'s behavior.</li>')+`<li><b>Actions:</b> ${ACT[r.label].join(' · ')}</li>`;
+ Object.keys(SIG).forEach(s=>{$('#b-'+s).style.width=Math.round(r.s[s]*100)+'%';$('#v-'+s).textContent=Math.round(r.s[s]*100)})}
+function showLedger(t,id,hash){$('#led').innerHTML=t.conf?`<span class="lock">🔒 sealed</span> · confirmation <b>${id}</b><br>proposal hash <b>${hash}…</b><br>mandate <b>travel ≤ $600 · confirm each purchase</b><br>step-up auth <b>${t.step?'passkey / biometric':'not required'}</b> · device <b>iPhone · session ${rid().slice(0,4)}</b><br>agent intent <b>"${e(t.utter||'')}"</b>`
+ :'<span style="color:var(--bad)">No customer confirmation on record.</span> This transaction cannot be defended as customer-authorized; it will be treated as unauthorized.'}
+
+/* ---------- pipeline ---------- */
+async function pipeline(t,res,needStep){
+ resetPanel();
+ const hash=t.hash||rid()+rid()+rid();const cid=rid()+rid();
+ const steps=[
+  ()=>t.rogue?['warn','New device','AGENT','Token presented from an unrecognised device fingerprint']:['ok','Token valid','ENTRA','Agent identity + delegated token verified'],
+  ()=>res.scope?['bad','Outside mandate','MANDATE',`${money(t.amount)} exceeds limit or category not allowed`]:['ok','Within limits','MANDATE',`${money(t.amount)} within ${money(t.mandateMax)} limit · MCC ${t.mcc} allowed`],
+  async()=>{if(needStep){await stepUp();t.step=true}return t.conf?['ok',needStep?'Verified + approved':'Customer approved','INTENT','Confirmation bound to proposal hash '+hash.slice(0,8)]:['bad','No confirmation','INTENT','Purchase attempted without customer approval']},
+  ()=>[VD[res.label][0],`${res.score}/100 · ${VD[res.label][1]}`,'RISK',`score=${res.score} likelihood=${res.lk} label=${res.label}`],
+  ()=>t.conf?['ok','Packet sealed','COSMOS','Immutable evidence record written (Purview-labelled)']:['warn','No customer evidence','COSMOS','Nothing to seal: no confirmation exists']];
+ for(let i=0;i<5;i++){setNode(i,'run','Checking…');await sleep(i===2&&needStep?200:650);const [st,tx,svc,ln]=await steps[i]();setNode(i,st,tx);log(svc,ln,st==='ok'?'ok':st);
+  if(i===3)showRisk(res);if(i===4)showLedger(t,cid,hash)}
+ t.cid=cid;
+}
+async function stepUp(){
+ sheet(`<h4>Confirm it's you</h4><p>This purchase needs extra verification.</p><button class="bio" id="bio"><svg viewBox="0 0 24 24"><path d="M12 11v3m0-8a5 5 0 00-5 5v3m10-3a5 5 0 00-7-4.500M5 15c0 3 1 5 3 7m8-1c1-2 2-4 2-6v-2m-6 4c0 2-.5 3.500-1.500 5"/></svg></button><p style="text-align:center">Tap to verify with Face ID</p>`);
+ await new Promise(res=>{const go=async()=>{const b=$('#bio');b.classList.add('scan');await sleep(1000);b.classList.remove('scan');b.classList.add('done');await sleep(450);closeSheet();res()};$('#bio').onclick=go;if(S.playing)setTimeout(go,900)});
+}
+
+/* ---------- purchase flow ---------- */
+async function ask(text){
+ if(S.busy)return;S.busy=true;showView('chat');
+ msg('u',e(text));$('#inp').value='';
+ await typing(700);
+ const mx=text.match(/\$\s?(\d[\d,]*)/);
+ if(!mx){msg('a','I can do that — what is the most you want to spend? I never guess a budget.');S.busy=false;return}
+ const max=Math.min(+mx[1].replace(/,/g,''),600);
+ msg('sys','Checking Southwest, United, Delta…');log('AGENT','Intent parsed · category=travel max='+max,'');await sleep(1000);
+ const ok=OFFERS.map(o=>({...o,total:o.b+o.t+o.f.reduce((a,x)=>a+x[1],0)})).filter(o=>o.total<=max).sort((a,b)=>a.total-b.total);
+ if(!ok.length){msg('a',`I couldn't find anything under ${money(max)}. Want to raise the budget or change the dates?`);S.busy=false;return}
+ const o=ok[0],id=rid(),hash=rid()+rid()+rid()+rid();S.pending={o,max,id,hash,utter:text};
+ log('GUARDIAN','Proposal '+id+' created · total '+money(o.total)+' · expires in 15m','');
+ const el=msg('a wide',`<div class="tkt"><div class="tk-h"><div><small>Proposed purchase</small><b>${e(o.m)}</b></div><span class="tag">Nothing charged yet</span></div>
+  <div class="route"><b>ORD</b><div class="ln"></div><b>LAX</b></div><div class="sch">Dec 14 · 7:05 AM → 9:40 AM · nonstop</div><div class="perf"></div>
+  <div style="height:8px"></div><div class="li"><span>Base fare</span><span>${money(o.b)}</span></div><div class="li"><span>Taxes</span><span>${money(o.t)}</span></div>
+  ${o.f.map(f=>`<div class="li"><span>${e(f[0])}</span><span>${money(f[1])}</span></div>`).join('')}
+  <div class="li t"><span>Total</span><span>${money(o.total)}</span></div>
+  <div class="okp">✓ Within your ${money(max)} limit</div><div class="cn">${e(o.cp)} · Offer valid 15 min · ref ${hash.slice(0,10)}</div>
+  <div class="acts"><button class="p" id="yes">Confirm &amp; pay</button><button id="no">Decline</button></div></div>`);
+ $('#yes').onclick=confirmPurchase;
+ $('#no').onclick=async()=>{if(S.busy&&!S.pending)return;S.pending=null;el.querySelector('.acts').remove();S.busy=false;log('GUARDIAN','Proposal declined by customer','');await typing(500);msg('a','No problem — nothing was charged.')};
+ S.busy=false;
+}
+function txn(total,conf){const p=S.pending;return{id:'t'+(++S.n),mid:p.o.id,mname:p.o.m,mcc:'4511',amount:total,country:'US',hour:new Date().getHours(),ship:false,vel:1,mandateMax:p.max,cats:['4511'],conf,hash:p.hash,utter:p.utter}}
+async function confirmPurchase(){
+ const p=S.pending;if(!p||S.busy)return;S.busy=true;$$('#msgs .acts button').forEach(b=>b.disabled=true);
+ const prof=PROF[SC[S.sc].prof],t=txn(p.o.total,true),res=score(t,prof),needStep=p.o.total>=500||res.flag;
+ log('GUARDIAN','Confirmation received · hash-bound to proposal '+p.id,'');
+ await pipeline(t,res,needStep);
+ t.res=res;t.date='Just now';t.status=res.flag?'review':'ok';S.txs.unshift(t);renderAct();
+ await typing(600);
+ msg('a wide',`<div class="rcpt"><div class="ok"><i>✓</i>Booked · ${money(t.amount)}</div><div style="font-size:12.5px;color:var(--pmu);margin-top:4px">${e(p.o.m)} · ORD → LAX · Dec 14</div>
+  <div class="seal">🔒 Your approval is sealed as evidence · ${t.cid}</div></div>`);
+ if(res.flag){await typing(700);msg('a','This is a bit different from your usual spending, so I\'ve added it to <b>Activity</b> for you to review any time.')}
+ S.pending=null;S.busy=false;
+}
+async function rogue(){
+ if(S.busy)return;S.busy=true;showView('chat');$('#chips').innerHTML='';
+ const t={id:'t'+(++S.n),mid:'globaldeals',mname:'GlobalDeals MX',mcc:'5732',amount:812.4,country:'MX',hour:new Date().getHours(),ship:true,vel:6,mandateMax:600,cats:['4511'],conf:false,rogue:true,utter:''};
+ const res=score(t,PROF.E);msg('sys','Your agent is trying to buy something — without asking you.');
+ log('AGENTPAY','Authorization request · agent shopper-7 · $812.40 · GlobalDeals MX','warn');
+ await pipeline(t,res,false);t.res=res;t.date='Just now';t.status='held';S.txs.unshift(t);renderAct();
+ log('ENTRA','Agent token shopper-7 suspended','bad');await sleep(500);
+ const el=msg('a wide',`<div class="warnbox"><b>We paused your agent</b><span style="font-size:12.5px;color:var(--pmu)">It tried to spend ${money(812.4)} at GlobalDeals MX — outside your travel-only, $600 limit. The purchase is on hold. Was this you?</span></div>
+  <div class="acts"><button class="p" id="nm">Not me</button><button id="me">It was me</button></div>`);
+ $('#nm').onclick=()=>{el.querySelector('.acts').remove();openDispute(t.id,'unauthorized')};
+ $('#me').onclick=async()=>{el.querySelector('.acts').remove();await typing(500);msg('a','Got it. Raise your agent\'s limit in Settings and I\'ll retry.')};
+ S.busy=false;
+}
+
+/* ---------- activity & disputes ---------- */
+const seeds=()=>[['Kroger','kroger',54.2,'5411','2 days ago'],['Chipotle','chipotle',18.4,'5812','4 days ago'],['Shell','shell',41,'5541','last week']];
+function renderAct(){
+ const all=[...S.txs,...seeds().map((s,i)=>({id:'s'+i,mname:s[0],amount:s[2],date:s[4],status:'ok',seed:1}))];
+ $('#actList').innerHTML=all.map(t=>{const b=t.status==='held'?'<span class="bd bad">Held · review</span>':t.status==='review'?'<span class="bd warn">Unusual for you · review</span>':'<span class="bd ok">Verified</span>';
+  const dis=S.ds.some(d=>d.t.id===t.id);
+  return`<div class="row"><div class="ic">${e(t.mname[0])}</div><div class="mid"><b>${e(t.mname)}</b><span>${t.date}</span><br>${dis?'<span class="bd nt">Dispute filed</span>':b}</div><div class="amt">${money(t.amount)}<br>${dis||t.seed?'':`<button class="lk" data-d="${t.id}">${t.status==='ok'?'Dispute':'Review'}</button>`}</div></div>`}).join('');
+ $$('#actList [data-d]').forEach(b=>b.onclick=()=>openDispute(b.dataset.d))}
+function renderDis(){$('#disList').innerHTML=S.ds.length?S.ds.map(d=>`<div class="row"><div class="ic">⚖</div><div class="mid"><b>${d.id} · ${e(d.t.mname)}</b><span>${REASONS[d.reason]}</span><br><span class="bd nt">With: ${PN[d.r.p]}</span></div><div class="amt">${money(d.t.amount)}</div></div>`).join(''):'<div style="color:var(--pmu);padding:14px;font-size:13px">No disputes yet.</div>'}
+let DR=null;
+function openDispute(id,preset){
+ const t=S.txs.find(x=>x.id===id);if(!t)return;showView('act');DR={id,reason:preset||null};
+ sheet(`<h4>${t.status==='ok'?'Dispute this purchase':'Review this purchase'}</h4><p>${e(t.mname)} · ${money(t.amount)}</p><div class="rs" id="rs">${Object.entries(REASONS).map(([k,v])=>`<button data-r="${k}" class="${k===preset?'on':''}">${v}</button>`).join('')}</div>
+  <textarea id="dt" placeholder="Tell us what happened"></textarea><button class="big" id="ds">Submit</button><button class="lk" style="width:100%;margin-top:6px;color:var(--pmu)" id="dc">Not now</button>`);
+ $$('#rs button').forEach(b=>b.onclick=()=>{DR.reason=b.dataset.r;$$('#rs button').forEach(x=>x.classList.toggle('on',x===b))});
+ $('#ds').onclick=submitDispute;$('#dc').onclick=closeSheet}
+async function submitDispute(){
+ const t=S.txs.find(x=>x.id===DR.id),txt=$('#dt').value.trim();if(!DR.reason||txt.length<5)return;
+ const r=routeDispute(DR.reason,t),d={id:'D'+(1001+S.ds.length),t,reason:DR.reason,r};S.ds.unshift(d);
+ log('DISPUTES',`${d.id} created · reason=${d.reason} · rule ${r.rule} → ${r.p}`,'warn');showRoute(r);
+ r.a.forEach((a,i)=>setTimeout(()=>log('ROUTER',a,'ok'),500*(i+1)));
+ renderAct();renderDis();
+ sheet(`<h4>We're on it</h4><p>Your case <b>${d.id}</b> was sent to <b>${PN[r.p]}</b>.</p><p>${r.w?'The merchant has 10 days to respond before your bank steps in.':'Your bank will review it and keep you updated here.'}</p><button class="big" id="ok">Done</button>`);
+ $('#ok').onclick=()=>{closeSheet();showView('dis')};
+}
+
+/* ---------- story mode & wiring ---------- */
+async function typeInto(txt){const i=$('#inp');i.value='';for(const c of txt){i.value+=c;await sleep(28)}await sleep(300)}
+async function story(){
+ if(S.playing)return;reset();S.playing=true;$('#play').disabled=true;await sleep(500);
+ const sc=SC[S.sc];
+ if(sc.req){await typeInto(sc.req);await ask(sc.req);await sleep(1800);await confirmPurchase()}else{await sleep(600);await rogue()}
+ await sleep(1500);const t=S.txs[0];
+ if(t&&t.res.label!=='normal'){
+  if(S.sc===3){$('#nm')&&$('#nm').click()}else{showView('act');await sleep(900);openDispute(t.id)}
+  await sleep(900);DR.reason='unauthorized';$$('#rs button').forEach(x=>x.classList.toggle('on',x.dataset.r==='unauthorized'));
+  const ta=$('#dt');for(const c of 'I did not make this purchase.'){ta.value+=c;await sleep(30)}await sleep(600);await submitDispute();
+ }
+ S.playing=false;$('#play').disabled=false;
+}
+function reset(){S={sc:S.sc,txs:[],ds:[],pending:null,busy:false,playing:false,n:0};closeSheet();$('#msgs').innerHTML='';$('#log').innerHTML='';resetPanel();renderAct();renderDis();renderChips();showView('chat');
+ msg('a',SC[S.sc].req?'Hi! I can book things within the limits you set, and I always show you the full price before anything is charged. What do you need?':'Hi! I\'m watching for purchases my agent makes. Use the button below to simulate it going off-script.');log('SYSTEM','Session started · scenario '+S.sc,'')}
+$('#cmp').onsubmit=ev=>{ev.preventDefault();const v=$('#inp').value.trim();if(v&&!S.busy&&SC[S.sc].req)ask(v)};
+$$('#scn button').forEach(b=>b.onclick=()=>{if(S.playing)return;$$('#scn button').forEach(x=>x.classList.toggle('on',x===b));S.sc=+b.dataset.s;reset()});
+$$('#tabs button').forEach(b=>b.onclick=()=>{closeSheet();showView(b.dataset.v)});
+$('#play').onclick=story;$('#reset').onclick=()=>{if(!S.playing)reset()};
+reset();
+</script></body></html>
