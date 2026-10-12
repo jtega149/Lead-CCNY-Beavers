@@ -20,6 +20,8 @@ from models import (
     Settlement,
 )
 
+from sense_check import check_sensibility
+
 # ── Import the real functions (fall back to stubs if not merged yet) ──
 
 try:
@@ -133,7 +135,8 @@ def judge(
     prov = check_provenance(purchase, mandate)
     ver = verify_purchase(purchase, mandate)
     risk = assess_risk(purchase, history)
-    checks = [prov, ver, risk]
+    sense = check_sensibility(purchase, mandate)
+    checks = [prov, ver, risk, sense]
 
     route = route_for(checks) if agent_pay.get("permitted", True) else "block"
 

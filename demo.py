@@ -167,6 +167,21 @@ OFF_TASK_UPSELL = {
 
 
 # ────────────────────────────────────────────────────────────────────
+# Scenario 6: Within budget but not sensible (needs the Azure LLM sense check)
+# ────────────────────────────────────────────────────────────────────
+
+SIX_LAYOVERS = {
+    **GOOD_PURCHASE,
+    "purchase": {
+        **GOOD_PURCHASE["purchase"],
+        "request_id": "demo-layovers-006",
+        "amount": 210.00,
+        "justification": "Book a flight to LA, cheapest option at $210: SFO→DEN→ORD→ATL→MIA→PHX→LAX, 6 layovers, 31 hours total, refundable.",
+    },
+}
+
+
+# ────────────────────────────────────────────────────────────────────
 # Run all five
 # ────────────────────────────────────────────────────────────────────
 

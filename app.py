@@ -35,6 +35,7 @@ from provenance import router as provenance_router
 from verifier import router as verifier_router
 from risk_signals import router as risk_signals_router
 from receipts import router as receipts_router
+from sense_check import router as sense_router
 from mock_ap4m import router as ap4m_router, agent_pay_router
 
 app.include_router(gateway_router)
@@ -42,6 +43,7 @@ app.include_router(provenance_router)
 app.include_router(verifier_router)
 app.include_router(risk_signals_router)
 app.include_router(receipts_router)
+app.include_router(sense_router)
 app.include_router(ap4m_router)
 app.include_router(agent_pay_router)
 
@@ -89,12 +91,13 @@ async def serve_demo_ui():
 @app.get("/demo/scenarios")
 async def demo_scenarios():
     """The demo.py scenarios, so the frontend runs the same payloads as the CLI demo."""
-    from demo import GOOD_PURCHASE, LIMIT_DODGING, NOT_DELIVERED, OFF_TASK_UPSELL, PROMPT_INJECTION
+    from demo import GOOD_PURCHASE, SIX_LAYOVERS, LIMIT_DODGING, NOT_DELIVERED, OFF_TASK_UPSELL, PROMPT_INJECTION
     return [
         {"key": "good", "label": "Good purchase", "expect": "auto_approve", "payload": GOOD_PURCHASE},
         {"key": "inject", "label": "Prompt injection", "expect": "block", "payload": PROMPT_INJECTION},
         {"key": "dodge", "label": "Limit-dodging scam", "expect": "block", "payload": LIMIT_DODGING},
         {"key": "undelivered", "label": "Paid, not delivered", "expect": "auto_approve · seller liable", "payload": NOT_DELIVERED},
+        {"key": "layovers", "label": "6-layover flight", "expect": "hold or block · LLM says not sensible", "payload": SIX_LAYOVERS},
         {"key": "upsell", "label": "Off-task upsell", "expect": "hold · ask the owner", "payload": OFF_TASK_UPSELL},
     ]
 
