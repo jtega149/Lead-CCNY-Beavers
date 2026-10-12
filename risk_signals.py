@@ -22,11 +22,9 @@ router = APIRouter(tags=["risk-signals"])
 # ────────────────────────────────────────────────────────────────────
 
 SELLERS: dict[str, dict] = {
-    # seller_id → { delivery_rate, typical_price_by_category }
-    # TODO: populate with 3-4 demo sellers
-    # Example:
-    # "seller_airline_aa": {"delivery_rate": 0.98, "typical_price": {"travel": 400}},
-    # "seller_sketchy":    {"delivery_rate": 0.40, "typical_price": {"software": 30}},
+    "seller_airline_aa": {"delivery_rate": 0.98, "typical_price": {"travel": 400.0}},
+    "seller_trusted_software": {"delivery_rate": 0.95, "typical_price": {"software": 50.0}},
+    "seller_shady_invoice": {"delivery_rate": 0.20, "typical_price": {"travel": 50.0}},
 }
 
 
@@ -36,25 +34,79 @@ SELLERS: dict[str, dict] = {
 
 def assess_risk(
     purchase: PurchaseRequest,
-    history: list[PaymentHistoryEntry],
+    history: list[PaymentHistoryEntry] | None = None,
 ) -> CheckResult:
     """
-    TODO: Implement rules from Product.md:
+    Assess seller reputation, price benchmarking, and pattern detection.
 
+    Rules from Product.md:
     1. Unknown seller                                → flag,  risk 55
-    2. amount > 3× typical_price for category        → block, risk 85
-       (default typical_price = 50 for unknown sellers)
-    3. ≥3 payments in history to same seller_id      → block, risk 80
+       (default typical_price = 50.0 for unknown sellers)
+    2. amount > 3x typical_price for category        → block, risk 85
+    3. >= 3 payments in history to same seller_id    → block, risk 80
     4. Known seller, fair price, no repeat pattern   → pass,  risk 15
 
-    Stack reasons, then set status from the worst one.
+    Accumulate all applicable reasons, and select worst status and highest risk.
     """
-    # STUB — replace with real logic
+    if history is None:
+        history = []
+
+    reasons: list[str] = []
+    risks: list[int] = []
+    statuses: list[str] = []
+
+    # 1. Unknown seller check
+    if purchase.seller_id not in SELLERS:
+        reasons.append(f"Unknown seller '{purchase.seller_id}'.")
+        statuses.append("flag")
+        risks.append(55)
+        typical_price = 50.0
+    else:
+        seller_data = SELLERS[purchase.seller_id]
+        category_prices = seller_data.get("typical_price", {})
+        if isinstance(category_prices, dict):
+            typical_price = float(category_prices.get(purchase.category, 50.0))
+        elif isinstance(category_prices, (int, float)):
+            typical_price = float(category_prices)
+        else:
+            typical_price = 50.0
+
+    # 2. Price benchmarking check
+    if purchase.amount > 3 * typical_price:
+        reasons.append(
+            f"Amount ${purchase.amount:.2f} is more than 3x the typical price (${typical_price:.2f}) for category '{purchase.category}'."
+        )
+        statuses.append("block")
+        risks.append(85)
+
+    # 3. Repeated payments to same payee pattern check
+    repeat_count = sum(1 for entry in history if entry.seller_id == purchase.seller_id)
+    if repeat_count >= 3:
+        reasons.append(
+            f"Repeated payments (>=3) to payee '{purchase.seller_id}', possible limit-dodging."
+        )
+        statuses.append("block")
+        risks.append(80)
+
+    # 4. Clean path (known seller, normal pricing, normal payment pattern)
+    if not reasons:
+        reasons.append("Known seller with normal pricing and payment pattern.")
+        statuses.append("pass")
+        risks.append(15)
+
+    max_risk = max(risks)
+    if "block" in statuses or max_risk >= 70:
+        final_status = "block"
+    elif "flag" in statuses or max_risk >= 40:
+        final_status = "flag"
+    else:
+        final_status = "pass"
+
     return CheckResult(
         check_name="risk_signals",
-        status="pass",
-        risk=0,
-        reasons=["stub — not yet implemented"],
+        status=final_status,
+        risk=max_risk,
+        reasons=reasons,
     )
 
 

@@ -74,6 +74,23 @@ class JudgeResult(BaseModel):
     settlement: Settlement | None = None
 
 
+def route_for(checks: list[CheckResult]) -> str:
+    """
+    Routing rule from Product.md, applied to the highest risk among the checks:
+      - any block OR risk >= 70          → block
+      - any flag OR risk 40-69, no block → hold
+      - all pass AND highest risk < 40   → auto_approve
+    """
+    statuses = {c.status for c in checks}
+    highest = max((c.risk for c in checks), default=0)
+
+    if "block" in statuses or highest >= 70:
+        return "block"
+    if "flag" in statuses or highest >= 40:
+        return "hold"
+    return "auto_approve"
+
+
 def judge(
     purchase: PurchaseRequest,
     mandate: Mandate,
@@ -81,13 +98,10 @@ def judge(
     delivered: bool = True,
 ) -> JudgeResult:
     """
-    TODO: Implement the full orchestration from Product.md:
+    Full orchestration from Product.md:
 
     1. Call check_provenance, verify_purchase, assess_risk
-    2. Apply routing rule on the highest risk among the three:
-       - all pass AND highest risk < 40   → auto_approve
-       - any flag OR risk 40-69, no block → hold
-       - any block OR risk >= 70          → block
+    2. Apply the routing rule (route_for)
     3. Call build_receipt
     4. If auto_approve → call settle; otherwise settlement = None
     5. Return JudgeResult
@@ -95,14 +109,12 @@ def judge(
     if history is None:
         history = []
 
-    # STUB — runs the three checks but uses placeholder routing
     prov = check_provenance(purchase, mandate)
     ver = verify_purchase(purchase, mandate)
     risk = assess_risk(purchase, history)
     checks = [prov, ver, risk]
 
-    # Placeholder routing — replace with real logic
-    route = "auto_approve"
+    route = route_for(checks)
 
     receipt = build_receipt(purchase, mandate, checks, route, delivered)
     settlement = settle(purchase.request_id, purchase.amount, route) if route == "auto_approve" else None
