@@ -97,8 +97,8 @@ async def demo_scenarios():
         {"key": "inject", "label": "Prompt injection", "expect": "block", "payload": PROMPT_INJECTION},
         {"key": "dodge", "label": "Limit-dodging scam", "expect": "block", "payload": LIMIT_DODGING},
         {"key": "undelivered", "label": "Paid, not delivered", "expect": "auto_approve · seller liable", "payload": NOT_DELIVERED},
-        {"key": "layovers", "label": "6-layover flight", "expect": "hold or block · LLM says not sensible", "payload": SIX_LAYOVERS},
-        {"key": "upsell", "label": "Off-task upsell", "expect": "hold · ask the owner", "payload": OFF_TASK_UPSELL},
+        {"key": "layovers", "label": "6-layover flight", "expect": "hold · Azure sense check", "payload": SIX_LAYOVERS},
+        {"key": "upsell", "label": "Off-task upsell", "expect": "block (Azure) · hold (rules only)", "payload": OFF_TASK_UPSELL},
     ]
 
 

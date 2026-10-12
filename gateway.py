@@ -186,8 +186,9 @@ class _JudgeIn(BaseModel):
 
 
 @router.post("/judge", response_model=JudgeResult)
-async def judge_endpoint(body: _JudgeIn):
-    """POST /judge — the front door for the Judgment Layer."""
+def judge_endpoint(body: _JudgeIn):
+    """POST /judge — the front door for the Judgment Layer.
+    Plain `def` so FastAPI runs it in a worker thread: the Azure sense check is a blocking HTTP call."""
     return judge(body.purchase, body.mandate, body.history, body.delivered)
 
 

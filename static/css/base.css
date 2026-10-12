@@ -25,6 +25,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:16px;fl
 .hero{padding:6px 0 22px;max-width:860px}.hero h1{font-size:34px;line-height:1.12;margin:0 0 8px;letter-spacing:-.6px}
 .hero h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.hero p{color:var(--mu);margin:0;font-size:15px}
 .grid{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+.grid>*,.panel>*{min-width:0}  /* long log lines / LLM reasons must not widen the columns */
 @media(max-width:980px){.grid{grid-template-columns:1fr}.phonewrap{justify-self:center}.hero h1{font-size:26px}}
 .phonewrap{position:sticky;top:12px;display:flex;flex-direction:column;align-items:center}
 .mode-toggle{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px;gap:2px}
@@ -38,7 +39,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:16px;fl
 .cd h5{margin:0 0 12px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mu);display:flex;justify-content:space-between;align-items:center}
 .live{display:inline-flex;gap:6px;align-items:center;color:var(--ok)}.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(53,208,127,.6);animation:pu 1.8s infinite}
 @keyframes pu{70%{box-shadow:0 0 0 8px rgba(53,208,127,0)}100%{box-shadow:0 0 0 0 rgba(53,208,127,0)}}
-.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .nd{text-align:center;position:relative;padding:0 2px}
 .nd:not(:last-child):after{content:"";position:absolute;top:21px;left:calc(50% + 24px);right:calc(-50% + 24px);height:2px;background:var(--line);transition:background .4s}
 .nd .ci{width:44px;height:44px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:#171b27;border:1.5px solid var(--line);color:var(--mu);transition:.35s}
@@ -56,7 +57,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:16px;fl
 .verdict.warn{color:var(--warn);border-color:var(--warn);background:rgba(255,176,32,.08)}
 .verdict.bad{color:var(--bad);border-color:var(--bad);background:rgba(255,77,79,.08)}
 .kv{display:flex;gap:18px;margin:10px 0;color:var(--mu);font-size:12px}.kv b{display:block;color:var(--tx);font-size:15px}
-.checks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}@media(max-width:760px){.checks-grid{grid-template-columns:1fr}}
+.checks-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}@media(max-width:1180px){.checks-grid{grid-template-columns:1fr 1fr}}@media(max-width:760px){.checks-grid{grid-template-columns:1fr}}
 .check-box{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
 .check-top{display:flex;justify-content:space-between;align-items:center;font-size:12px}
 .check-top b{color:var(--tx);font-size:12.5px}

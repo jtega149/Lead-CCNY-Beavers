@@ -5,10 +5,12 @@ const STAGES = [
   ['Provenance', '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
   ['Mandate verifier', '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.500"/>'],
   ['Risk & patterns', '<path d="M3 12h4l3-7 4 14 3-7h4"/>'],
+  ['Sense check · Azure', '<path d="M12 3a6 6 0 00-4 10.500V16h8v-2.500A6 6 0 0012 3zM9 20h6"/>'],
   ['Route + receipt', '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>'],
 ];
-const CHECK_KEYS = {provenance: 'prov', verifier: 'ver', risk_signals: 'risk'};
-const CHECK_LOG = {provenance: 'PROVENANCE', verifier: 'VERIFIER', risk_signals: 'RISK'};
+const CHECK_KEYS = {provenance: 'prov', verifier: 'ver', risk_signals: 'risk', sense_check: 'sense'};
+const CHECK_LOG = {provenance: 'PROVENANCE', verifier: 'VERIFIER', risk_signals: 'RISK', sense_check: 'AZURE OPENAI'};
+const ROUTE_NODE = STAGES.length - 1;
 
 function buildPipe() {
   $('#pipe').innerHTML = STAGES.map((s, i) =>
@@ -85,7 +87,7 @@ async function animatePipeline(res) {
   setNode(0, ap.permitted ? 'ok' : 'bad', ap.permitted ? 'Would approve' : 'Declined');
   log('AP4M', ap.reason, ap.permitted ? 'ok' : 'bad');
 
-  for (const [i, name] of [[1, 'provenance'], [2, 'verifier'], [3, 'risk_signals']]) {
+  for (const [i, name] of [[1, 'provenance'], [2, 'verifier'], [3, 'risk_signals'], [4, 'sense_check']]) {
     const c = res.checks.find(x => x.check_name === name);
     if (!c) continue;
     setNode(i, 'run', 'Checking…');
@@ -94,14 +96,14 @@ async function animatePipeline(res) {
     log(CHECK_LOG[name], `${c.status.toUpperCase()}: ${c.reasons[0] || 'checked'}`, toneOf(c.status));
   }
 
-  setNode(4, 'run', 'Routing…');
+  setNode(ROUTE_NODE, 'run', 'Routing…');
   await sleep(400);
   setRouteNode(res);
 }
 
 function setRouteNode(res) {
   const cfg = ROUTE_CONFIG[res.route] || {tone: 'warn'};
-  setNode(4, cfg.tone, routeLabel(res.route));
+  setNode(ROUTE_NODE, cfg.tone, routeLabel(res.route));
   log('RECEIPTS', `${res.route} · liable=${res.receipt.liable_party} · sig ${res.receipt.signature.slice(0, 12)}…`, cfg.tone);
 }
 

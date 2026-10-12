@@ -182,7 +182,7 @@ SIX_LAYOVERS = {
 
 
 # ────────────────────────────────────────────────────────────────────
-# Run all five
+# Run all six
 # ────────────────────────────────────────────────────────────────────
 
 def run_all():
@@ -201,7 +201,10 @@ def run_all():
     pp("Scenario 4: PAID, NOT DELIVERED  (expect: auto_approve, liable=seller)", result4)
 
     result5 = _post("/judge", OFF_TASK_UPSELL)
-    pp("Scenario 5: OFF-TASK UPSELL  (expect: hold, waits for a human)", result5)
+    pp("Scenario 5: OFF-TASK UPSELL  (expect: hold; block if the Azure sense check is on)", result5)
+
+    result6 = _post("/judge", SIX_LAYOVERS)
+    pp("Scenario 6: 6-LAYOVER FLIGHT  (expect: hold with the Azure sense check; auto_approve without it)", result6)
 
     print(f"\n{'='*60}")
     print("  Demo complete!")
