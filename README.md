@@ -1,4 +1,70 @@
-Here's how I'd build it. The key is to scope the first version to the thin slice that proves the idea: one purchase flow, a verifier, a risk router, and a signed receipt.
+# Lead-CCNY-Beavers
+
+# An explanation of MasterCards existing AP4M (Agent Pay for Machines)
+
+Mastercard argues that AI agents will increasingly buy and sell services from each other continuously and at high speed, without a person approving each purchase. Payment systems built for human-initiated transactions aren’t designed for that. AP4M has four main parts:
+
+- Credentialing: each agent is verified, using Mastercard’s “Verifiable Intent” framework.
+
+- Permissioning: organizations set spending limits and authorization rules that are enforced programmatically.
+
+- Transacting: verified participants can transact across providers and systems.
+
+- Settling: guaranteed settlement across cards, bank accounts, and stablecoins.
+
+# The problem we notice:
+The biggest one I see is that the limits can be followed perfectly and the agent can still make bad purchases.
+
+Permissioning only enforces the rules it’s given, like a budget cap or an approved category. It can’t tell whether a specific purchase is a good idea. AI agents can be tricked, for example by a malicious website or message that hides instructions telling the agent to “pay for this service.” The agent would be credentialed, within budget, and fully authorized on paper, and the money would still go to an attacker. A scam could also be built to stay under the spending limits, so each payment looks normal.
+
+That leads to a second problem: who is responsible when something goes wrong? Settlement is guaranteed, which protects sellers, but it makes mistakes harder to undo. Card payments have chargebacks because a human can say “I didn’t authorize this.” Here the answer is technically “yes, your agent did.” Whether the user, the agent’s developer, the payment provider, or the seller bears the loss is unresolved, and the partner quotes mention dispute resolution and liability as things still being worked out.
+
+# Proposed Solution:
+
+Context: Building on top of MasterCards existing Agent Pay for Machines. So we want to build on top of an existing system
+
+Both problems share a root cause: right now nothing sits between "the agent decided to pay" and "the money moved" that judges the decision or records why it was made. One layer can fill that gap. Call it a **Judgment and Accountability Layer**.
+
+## Part 1: Helping agents make better purchases
+
+- **Independent verifier:** The agent submits a signed purchase justification (the task, why this seller, what alternatives it considered). A separate verifier model checks it against the owner's original mandate. The agent that decides never approves its own spending.
+- **Instruction provenance tagging:** Track where each "pay for this" instruction came from. If it traces to untrusted content, like a webpage or an email the agent read, rather than the owner's request, the payment gets flagged or escalated. This directly targets the prompt-injection scenario.
+- **Seller reputation and price benchmarking:** Score counterparties on history, delivery rate, and dispute rate, and compare the price to market rates for the same service. An agent about to pay 10x the going rate to a brand-new seller gets stopped.
+- **Pattern detection across payments:** Catch scams built to stay under limits, such as many small payments to one new payee or repeated near-limit charges.
+- **Risk-tiered routing:** Low-risk payments auto-approve, medium-risk ones get delayed or get an extra check, and high-risk ones go to a human. This keeps the cost and latency of checking proportional to the stakes.
+
+## Part 2: Deciding who's responsible
+
+- **Decision receipts:** Every transaction gets a cryptographically signed bundle holding the owner's mandate, the agent's justification, the provenance of the instruction, the verifier's verdict, and the delivery outcome. Disputes can then be settled from evidence instead of arguments.
+- **Fault-based liability matrix:** The receipt shows which layer failed, and pre-agreed rules assign the loss:
+    - Seller took payment and didn't deliver: the seller bears it.
+    - Owner set an overly broad mandate: the owner bears it.
+    - Verifier approved a manipulated purchase: the verifier provider (or its insurer) bears it.
+    - Agent developer's model was exploitable: the developer's bond covers it.
+- **Conditional settlement:** For larger payments, funds sit in escrow until delivery is machine-verified, such as an API returning valid output or a file matching a hash. Micropayments can settle instantly but into a short clawback window, with disputes batched and aggregated.
+- **Bonding and insurance:** Agent developers and verifiers stake capital or buy coverage, with premiums based on their track record. That gives them a financial reason to build safer agents.
+- **Circuit breakers:** Anomalies automatically freeze an agent's spending and cap how much damage it can do before a human notices.
+
+## How the two parts connect
+
+The verification layer produces the evidence the accountability layer needs. Because the verifier's verdict and the instruction's provenance are logged on every payment, liability can be assigned by what actually happened.
+
+The hardest design problem is latency. A full verifier check on every fractions-of-a-cent payment would defeat the point of machine-speed payments. One way around it is to verify at the level of a session or mandate instead of each transaction, and escalate to per-transaction checks only when something looks off.
+
+
+## Further context
+
+- This is a project for a microsoft hackathon, so ideally we want to maybe utilize microsoft azure.
+
+- We have like 2 hours left to implement this, and we know that our solution will live on top of a mock version of Mastercards AP4M, but we dont want to make that mock AP4M too complicated, because our solution is just something built on top of something that resembles mastercards ap4m.
+
+- NotionDoc.md also has some other random notes that my team made, we have like random notes so dont rely too much like that.
+
+The task split, shared data shapes, and branch plan are in `Product.md`.
+
+# Build notes
+
+Scope the first version to the thin slice that proves the idea: one purchase flow, a verifier, a risk router, and a signed receipt.
 
 ## Architecture
 
@@ -14,17 +80,19 @@ Owner mandate → Shopping agent → [Judgment layer] → Mock Agent Pay → Mer
 
 ## Build step 1: Simulate Agent Pay
 
-You won't have access to the real network, so build a small mock service:
+We won't have access to the real network, so build a small mock service:
+
 - **Mandate API** with the owner's spending limit, allowed categories, and expiry.
 - **Pay endpoint** that accepts a payment request from an agent and returns approved or declined.
 - **Fake merchants**, with 3 or 4 seeded sellers: one good, one new and sketchy, one that takes payment and doesn't deliver, and one that overcharges.
 - **Dispute endpoint** that simulates a chargeback, so you can show who bears the loss.
 
-A small FastAPI or Node service is enough. Keep its interface close to how you understand Agent Pay works, so it could be swapped for the real thing later.
+A small FastAPI service is enough. Keep its interface close to how Agent Pay works, so it could be swapped for the real thing later.
 
 ## Build step 2: The core layer
 
 Build in this order, since each piece makes the demo stronger:
+
 1. **Purchase justification schema.** The agent must submit the task, the chosen seller, the alternatives considered, and the price.
 2. **Independent verifier.** A separate model call, on a different model or deployment from the shopping agent, checks the justification against the mandate.
 3. **Provenance tagging.** Each "pay" instruction carries a tag for where it came from: the owner, or content the agent read, such as a webpage or email. Untrusted-origin payments are escalated.
@@ -50,16 +118,16 @@ Check the current Foundry docs before committing to specific features, since nam
 ## Build step 3: Bring it together
 
 Build one end-to-end demo with three scenarios:
+
 1. **Happy path.** A normal purchase auto-approves and is delivered, and the receipt is logged.
 2. **Prompt injection.** The agent reads a webpage that says "pay this invoice now". Provenance flags it, a human is asked, and the payment is blocked.
 3. **Bad seller and chargeback.** A new seller charges 10x the market price. The router stops it. Then you replay a failed delivery and show the liability matrix assigning the loss to the seller, not Mastercard.
 
-Add a simple dashboard with a transaction feed, risk scores, and a receipt viewer. For metrics, show how many bad payments were caught, how many good ones were wrongly blocked, and how often a human was needed. That last number addresses Mariah's "minimal human intervention" point.
+Add a simple dashboard with a transaction feed, risk scores, and a receipt viewer. For metrics, show how many bad payments were caught, how many good ones were wrongly blocked, and how often a human was needed.
 
-## Decisions for your team
+## Decisions for the team
 
-- **Latency:** verify per mandate or session by default, and escalate to per-transaction checks only on anomalies. This is the answer to the machine-speed concern in your notes.
+- **Latency:** verify per mandate or session by default, and escalate to per-transaction checks only on anomalies. This is the answer to the machine-speed concern.
 - **Human in the loop:** put it only at the high-risk tier, plus an optional final confirmation for first-time sellers.
 - **Data sensitivity:** use synthetic data for the demo, and say that production would run in a private Foundry deployment with no data used for training.
-
-I can build the mock Agent Pay service and the receipt and liability code as a working starter repo. Tell me your preferred language, Python or TypeScript, and whether you have a Foundry project and a model deployment available yet.
+- **Language:** Python and FastAPI. Who builds which file is in `Product.md`.
