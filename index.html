@@ -1,331 +1,299 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Judgment Layer Console</title>
-<style>
-:root{
-  --bg:#f5f6f8; --panel:#ffffff; --ink:#14171c; --mut:#5d6573; --line:#e3e6eb; --soft:#eef0f3;
-  --ok:#14804a; --ok-bg:#e3f5ea; --warn:#a15c00; --warn-bg:#fdf1dc; --bad:#c02a2a; --bad-bg:#fbe5e5;
-  --acc:#2f5bea; --acc-ink:#fff; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0f1115; --panel:#171a20; --ink:#e8eaee; --mut:#9aa3b2; --line:#272b33; --soft:#1f232b;
-  --ok:#4fd18b; --ok-bg:#12291d; --warn:#f2b54a; --warn-bg:#2d2312; --bad:#ff6b6b; --bad-bg:#311718;
-  --acc:#6f8cff; --acc-ink:#0f1115;
-}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 24px;border-bottom:1px solid var(--line);background:var(--panel)}
-header h1{font-size:17px;margin:0}
-header p{margin:2px 0 0;color:var(--mut);font-size:13px}
-.health{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px;white-space:nowrap}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--mut)}
-.dot.up{background:var(--ok)} .dot.down{background:var(--bad)}
-main{display:grid;grid-template-columns:minmax(320px,400px) 1fr;gap:20px;padding:20px 24px;max-width:1400px;margin:0 auto}
-section.panel{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
-h3{font-size:12px;color:var(--mut);margin:16px 0 8px;font-weight:600}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.tabs button{all:unset;cursor:pointer;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px}
-.tabs button small{display:block;color:var(--mut);font-size:11px}
-.tabs button.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
-label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}
-input,select,textarea{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--soft);color:var(--ink);font:inherit;font-size:13px}
-textarea{resize:vertical;min-height:52px}
-textarea.code{font-family:var(--mono);font-size:12px;min-height:70px}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.row2>*,.checks>*,.duo>*{min-width:0}
-.check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px}
-.check input{width:auto}
-.run{margin-top:16px;width:100%;padding:11px;border:0;border-radius:9px;background:var(--acc);color:var(--acc-ink);font-weight:600;font-size:14px;cursor:pointer}
-.run:disabled{opacity:.6;cursor:wait}
-.err{color:var(--bad);font-size:12px;margin-top:8px;min-height:16px}
-.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-bottom:16px}
-.flow span{padding:4px 9px;border-radius:999px;background:var(--soft);border:1px solid var(--line)}
-.flow span.lit{color:var(--ink);border-color:var(--acc)}
-.verdict{border-radius:10px;padding:14px 16px;margin-bottom:16px;background:var(--soft);color:var(--mut)}
-.verdict b{display:block;font-size:17px;margin-bottom:2px}
-.verdict.ok{background:var(--ok-bg);color:var(--ok)} .verdict.warn{background:var(--warn-bg);color:var(--warn)} .verdict.bad{background:var(--bad-bg);color:var(--bad)}
-.verdict p{margin:0;color:var(--ink);opacity:.85}
-.checks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.card{border:1px solid var(--line);border-radius:10px;padding:12px}
-.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card .top b{font-size:13px}
-.badge{font-size:11px;font-weight:700;text-transform:uppercase;padding:2px 7px;border-radius:5px}
-.badge.pass,.badge.auto_approve{background:var(--ok-bg);color:var(--ok)}
-.badge.flag,.badge.hold{background:var(--warn-bg);color:var(--warn)}
-.badge.block{background:var(--bad-bg);color:var(--bad)}
-.bar{height:6px;border-radius:3px;background:var(--soft);margin:10px 0 4px;overflow:hidden}
-.bar i{display:block;height:100%;border-radius:3px}
-.risk{font-size:12px;color:var(--mut)}
-.card ul{margin:8px 0 0;padding-left:16px;font-size:12.5px}
-.card li{margin:3px 0;word-break:break-word}
-.duo{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;margin-top:12px}
-dl{margin:8px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
-dt{color:var(--mut)} dd{margin:0;word-break:break-word}
-.mono{font-family:var(--mono);font-size:12px}
-details{margin-top:10px} summary{cursor:pointer;font-size:12px;color:var(--acc)}
-pre{background:var(--soft);border-radius:8px;padding:10px;overflow:auto;max-height:340px;font-size:11.5px;font-family:var(--mono)}
-.empty{color:var(--mut);padding:30px 0;text-align:center}
-.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin:20px 0 14px}
-.metric{background:var(--soft);border-radius:9px;padding:10px 12px}
-.metric b{display:block;font-size:20px} .metric span{font-size:11.5px;color:var(--mut)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11.5px;color:var(--mut);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
-td{padding:7px 8px;border-bottom:1px solid var(--line)}
-tbody tr{cursor:pointer} tbody tr:hover{background:var(--soft)}
-tbody tr.sel{background:var(--soft)}
-.full{grid-column:1/-1}
-@media (max-width:980px){
-  main{grid-template-columns:1fr;padding:16px}
-  .checks,.duo{grid-template-columns:1fr}
-  .metrics{grid-template-columns:repeat(3,1fr)}
-  header{padding:14px 16px;flex-wrap:wrap}
-  .tablewrap{overflow-x:auto}
-}
-@media (max-width:520px){.row2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Judgment &amp; Accountability Layer · Mastercard AP4M</title>
+<link rel="stylesheet" href="static/css/base.css">
+<link rel="stylesheet" href="static/css/phone.css">
 </head>
 <body>
+<div class="bg"></div>
+<div class="wrap">
 <header>
-  <div>
-    <h1>Judgment &amp; Accountability Layer</h1>
-    <p>Runs between “the agent decided to pay” and “the money moved” in Mastercard Agent Pay (mock)</p>
+  <div class="brand">
+    <svg viewBox="0 0 32 32" width="36" height="36">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#eb001b"/>
+          <stop offset="1" stop-color="#f79e1b"/>
+        </linearGradient>
+      </defs>
+      <path d="M16 2l11 4v9c0 7-4.700 12.200-11 15C9.700 27.200 5 22 5 15V6z" fill="url(#g)"/>
+      <path d="M11 16l3.500 3.500L21.500 12" stroke="#fff" stroke-width="2.600" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <b>Judgment &amp; Accountability Layer</b>
+      <span>Mastercard Agent Pay for Machines · Azure Cloud</span>
+    </div>
   </div>
-  <div class="health"><span class="dot" id="hdot"></span><span id="htxt">checking server…</span></div>
+
+  <div class="seg" id="tabs">
+    <!-- Populated from GET /demo/scenarios -->
+  </div>
+
+  <div class="ctl">
+    <div class="health"><span class="dot" id="hdot"></span><span id="htxt">checking server…</span></div>
+    <button class="cta" id="play">▶ Play story</button>
+    <button class="ghost" id="reset">Reset</button>
+  </div>
 </header>
 
-<main>
-  <!-- ───────── Request ───────── -->
-  <section class="panel">
-    <h2>Agent purchase request</h2>
-    <div class="tabs" id="tabs"></div>
+<div class="hero">
+  <h1>Agents can buy. Now every purchase can be <em>explained</em>, <em>verified</em> and <em>defended</em>.</h1>
+  <p>Sits between “the agent decided to pay” and “the money moved” in Mastercard Agent Pay. Real-time instruction provenance, independent mandate verification, anomaly scoring, and cryptographic decision receipts.</p>
+</div>
 
-    <h3>Owner mandate</h3>
-    <label for="m_task">Task the owner asked for</label>
-    <input id="m_task">
-    <div class="row2">
-      <div><label for="m_max">Max amount (USD)</label><input id="m_max" type="number" step="0.01" min="0"></div>
-      <div><label for="m_owner">Owner id</label><input id="m_owner"></div>
-    </div>
-    <div class="row2">
-      <div><label for="m_cats">Allowed categories</label><input id="m_cats" placeholder="travel, software"></div>
-      <div><label for="m_trusted">Trusted instruction sources</label><input id="m_trusted" placeholder="owner"></div>
+<div class="grid">
+  <!-- Left column: Phone simulator + Inspector toggle -->
+  <div class="phonewrap">
+    <div class="mode-toggle" id="modeToggle">
+      <button class="on" data-m="phone">📱 Customer App</button>
+      <button data-m="inspector">⚙️ Request Inspector</button>
     </div>
 
-    <h3>What the agent wants to pay</h3>
-    <div class="row2">
-      <div><label for="p_seller_name">Seller name</label><input id="p_seller_name"></div>
-      <div><label for="p_seller_id">Seller id</label><input id="p_seller_id" list="sellers"></div>
-    </div>
-    <datalist id="sellers">
-      <option value="seller_airline_aa"><option value="seller_trusted_software"><option value="seller_shady_invoice"><option value="seller_new_shady">
-    </datalist>
-    <div class="row2">
-      <div><label for="p_amount">Amount (USD)</label><input id="p_amount" type="number" step="0.01" min="0"></div>
-      <div><label for="p_category">Category</label><input id="p_category"></div>
-    </div>
-    <div class="row2">
-      <div><label for="p_source">Instruction source</label>
-        <select id="p_source"><option>owner</option><option>webpage</option><option>email</option><option>chat</option><option>unknown</option></select></div>
-      <div><label for="p_agent">Agent id</label><input id="p_agent"></div>
-    </div>
-    <label for="p_itext">Instruction text (what triggered the payment)</label>
-    <textarea id="p_itext"></textarea>
-    <label for="p_just">Agent's justification</label>
-    <textarea id="p_just"></textarea>
-    <label for="h_json">Past payments (history JSON)</label>
-    <textarea id="h_json" class="code" spellcheck="false"></textarea>
-    <div class="check"><input type="checkbox" id="delivered"><label for="delivered" style="margin:0;color:var(--ink)">Seller delivers what was paid for</label></div>
+    <!-- Phone Simulator -->
+    <div class="phone" id="phoneContainer">
+      <div class="screen">
+        <div class="notch"></div>
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="views">
+          <!-- Chat View -->
+          <div class="view on" id="v-chat">
+            <div class="ahead">
+              <div class="av">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l2.300 6.700L21 11l-6.700 2.300L12 20l-2.300-6.700L3 11l6.700-2.300z"/></svg>
+              </div>
+              <div><b>Pay Agent</b><span>Acts only within your limits</span></div>
+            </div>
+            <div class="mand">🛡 <span id="ph-mandate">Mandate: <b>Travel</b> · up to <b>$600</b> · <b>asks before buying</b></span></div>
+            <div class="msgs" id="msgs"></div>
+            <div class="chips" id="chips"></div>
+            <form class="composer" id="cmp">
+              <input id="inp" placeholder="Ask your agent to buy something…" autocomplete="off">
+              <button type="submit">↑</button>
+            </form>
+          </div>
 
-    <button class="run" id="run">Send through the Judgment Layer →</button>
-    <div class="err" id="err"></div>
-  </section>
+          <!-- Activity View -->
+          <div class="view" id="v-act">
+            <h3>Activity</h3>
+            <div class="list" id="actList"></div>
+          </div>
 
-  <!-- ───────── Decision ───────── -->
-  <section class="panel">
-    <h2>Decision</h2>
-    <div class="flow" id="flow">
-      <span data-s="agent">Agent</span>→<span data-s="checks">Provenance · Verifier · Risk</span>→<span data-s="router">Risk router</span>→<span data-s="settle">Agent Pay settlement</span>→<span data-s="receipt">Signed receipt</span>
+          <!-- Disputes View -->
+          <div class="view" id="v-dis">
+            <h3>Disputes</h3>
+            <div class="list" id="disList"></div>
+          </div>
+
+          <!-- Bottom Sheet (Disputes & Step-up Auth) -->
+          <div class="sheet" id="sheet"></div>
+        </div>
+
+        <!-- Phone Tab Bar -->
+        <div class="tabbar" id="phoneTabs">
+          <button data-v="chat" class="on">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>Agent
+          </button>
+          <button data-v="act">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Activity
+          </button>
+          <button data-v="dis">
+            <svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z"/></svg>Disputes
+          </button>
+        </div>
+      </div>
     </div>
-    <div id="out"><div class="empty">Pick a scenario and send it through the layer.</div></div>
-  </section>
 
-  <!-- ───────── Session feed ───────── -->
-  <section class="panel full">
-    <h2>Session transaction feed</h2>
+    <!-- Raw Payload Inspector (alternative mode) -->
+    <div class="inspector-card" id="inspectorCard">
+      <h3>Agent Purchase Payload</h3>
+      <p style="color:var(--mu);font-size:12px;margin:0 0 10px">Edit parameters directly sent to <code>POST /judge</code></p>
+      
+      <h4>Owner mandate</h4>
+      <label for="m_task">Task owner requested</label>
+      <input id="m_task">
+      <div class="row2">
+        <div><label for="m_max">Max amount ($)</label><input id="m_max" type="number" step="0.01"></div>
+        <div><label for="m_owner">Owner ID</label><input id="m_owner"></div>
+      </div>
+      <div class="row2">
+        <div><label for="m_cats">Allowed categories</label><input id="m_cats"></div>
+        <div><label for="m_trusted">Trusted sources</label><input id="m_trusted"></div>
+      </div>
+
+      <h4>Purchase proposal</h4>
+      <div class="row2">
+        <div><label for="p_seller_name">Seller name</label><input id="p_seller_name"></div>
+        <div><label for="p_seller_id">Seller ID</label><input id="p_seller_id"></div>
+      </div>
+      <div class="row2">
+        <div><label for="p_amount">Amount ($)</label><input id="p_amount" type="number" step="0.01"></div>
+        <div><label for="p_category">Category</label><input id="p_category"></div>
+      </div>
+      <div class="row2">
+        <div><label for="p_source">Source</label>
+          <select id="p_source"><option>owner</option><option>webpage</option><option>email</option><option>chat</option><option>unknown</option></select>
+        </div>
+        <div><label for="p_agent">Agent ID</label><input id="p_agent"></div>
+      </div>
+      <label for="p_itext">Instruction text</label>
+      <textarea id="p_itext"></textarea>
+      <label for="p_just">Agent justification</label>
+      <textarea id="p_just"></textarea>
+      <label for="h_json">Past payment history (JSON)</label>
+      <textarea id="h_json" class="code" spellcheck="false"></textarea>
+      <div class="check-row">
+        <input type="checkbox" id="delivered">
+        <label for="delivered" style="margin:0">Seller delivers order (uncheck for liability test)</label>
+      </div>
+
+      <button class="cta" id="runInspector" style="margin-top:16px;width:100%">Send to Judgment Layer →</button>
+      <div id="inspectorErr" style="color:var(--bad);font-size:12px;margin-top:8px"></div>
+    </div>
+
+    <div class="cap">Customer experience</div>
+  </div>
+
+  <!-- Right column: Control Room -->
+  <div class="panel">
+    <!-- Agent Pay alone vs. with the Judgment Layer -->
+    <div class="cd">
+      <h5>Agent Pay alone vs. with the Judgment Layer</h5>
+      <div class="vs">
+        <div class="lane" id="lane-ap"><small>Mastercard Agent Pay alone</small><b id="ap-verdict">–</b><span id="ap-why"></span></div>
+        <div class="arrow">→</div>
+        <div class="lane" id="lane-jl"><small>With the Judgment Layer</small><b id="jl-verdict">–</b><span id="jl-why"></span></div>
+      </div>
+      <div class="vs-note" id="vs-note"></div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="cd">
+      <h5>Trust Layer pipeline <span class="live">live</span></h5>
+      <div class="pipe" id="pipe"></div>
+    </div>
+
+    <!-- Risk verdict -->
+    <div class="cd">
+      <h5>Risk verdict <span id="vsrc" style="text-transform:none;letter-spacing:0">analyst view · never shown to customers</span></h5>
+      <div class="two">
+        <div class="gauge">
+          <svg viewBox="0 0 120 70">
+            <path d="M10 62A50 50 0 0 1 110 62" fill="none" stroke="#1a1f2d" stroke-width="10" stroke-linecap="round"/>
+            <path id="garc" d="M10 62A50 50 0 0 1 110 62" fill="none" stroke="#35d07f" stroke-width="10" stroke-linecap="round" stroke-dasharray="157.1" stroke-dashoffset="157.1" style="transition:stroke-dashoffset .9s cubic-bezier(.2,.8,.2,1),stroke .4s"/>
+          </svg>
+          <div class="n"><span id="gnum">–</span><small>risk score</small></div>
+        </div>
+        <div>
+          <span class="verdict" id="vd">Waiting for an agent transaction…</span>
+          <div class="kv">
+            <div><b id="kroute">–</b>route</div>
+            <div><b id="kliable">–</b>liable party</div>
+            <div><b id="ksettle">–</b>settlement</div>
+          </div>
+          <ul class="rs2" id="rsn">
+            <li>Signals appear here as soon as a purchase is scored.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Individual checks breakdown -->
+    <div class="cd">
+      <h5>Checker breakdown <span style="text-transform:none;letter-spacing:0">Provenance · Verifier · Risk signals</span></h5>
+      <div class="checks-grid" id="checksGrid">
+        <div class="check-box" id="cb-prov">
+          <div class="check-top"><b>Provenance</b><span class="bd nt" id="badge-prov">–</span></div>
+          <div class="tr"><div class="fl" id="bar-prov"></div></div>
+          <div class="check-risk" id="risk-prov">risk: –</div>
+          <ul class="rs2" id="reasons-prov"><li>Waiting…</li></ul>
+        </div>
+        <div class="check-box" id="cb-ver">
+          <div class="check-top"><b>Mandate Verifier</b><span class="bd nt" id="badge-ver">–</span></div>
+          <div class="tr"><div class="fl" id="bar-ver"></div></div>
+          <div class="check-risk" id="risk-ver">risk: –</div>
+          <ul class="rs2" id="reasons-ver"><li>Waiting…</li></ul>
+        </div>
+        <div class="check-box" id="cb-risk">
+          <div class="check-top"><b>Risk Signals</b><span class="bd nt" id="badge-risk">–</span></div>
+          <div class="tr"><div class="fl" id="bar-risk"></div></div>
+          <div class="check-risk" id="risk-risk">risk: –</div>
+          <ul class="rs2" id="reasons-risk"><li>Waiting…</li></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Evidence ledger & Decision Receipt -->
+    <div class="cd">
+      <h5>Evidence ledger <span style="text-transform:none;letter-spacing:0">cryptographic decision receipt</span></h5>
+      <div class="led" id="led">No receipt yet.</div>
+      <details id="rawReceipt">
+        <summary>View signed receipt JSON</summary>
+        <pre id="receiptPre">No receipt generated yet.</pre>
+      </details>
+    </div>
+
+    <!-- Dispute & Liability routing diagram -->
+    <div class="cd rt">
+      <h5>Liability routing <span style="text-transform:none;letter-spacing:0">who bears the loss, per the signed receipt</span></h5>
+      <svg viewBox="0 0 520 190" id="rsvg">
+        <g class="pill" id="p-o"><rect x="10" y="78" width="120" height="34" rx="17"/><text x="70" y="99" text-anchor="middle">Decision receipt</text></g>
+        <path id="l-owner" d="M130 95C250 95 250 28 370 28"/>
+        <path id="l-seller" d="M130 95C250 95 250 75 370 75"/>
+        <path id="l-verifier" d="M130 95C250 95 250 123 370 123"/>
+        <path id="l-agent_developer" d="M130 95C250 95 250 170 370 170"/>
+        <g class="pill" id="p-owner"><rect x="370" y="11" width="140" height="34" rx="17"/><text x="440" y="32" text-anchor="middle">Owner</text></g>
+        <g class="pill" id="p-seller"><rect x="370" y="58" width="140" height="34" rx="17"/><text x="440" y="79" text-anchor="middle">Seller</text></g>
+        <g class="pill" id="p-verifier"><rect x="370" y="106" width="140" height="34" rx="17"/><text x="440" y="127" text-anchor="middle">Verifier provider</text></g>
+        <g class="pill" id="p-agent_developer"><rect x="370" y="153" width="140" height="34" rx="17"/><text x="440" y="174" text-anchor="middle">Agent developer</text></g>
+      </svg>
+      <div class="rtx" id="rtx"></div>
+    </div>
+
+    <!-- Event stream -->
+    <div class="cd">
+      <h5>Event stream <span style="text-transform:none;letter-spacing:0">gateway calls this session</span></h5>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Session transaction feed section -->
+<div class="feed-sec">
+  <div class="cd">
+    <h5>Session transaction feed</h5>
     <div class="metrics" id="metrics"></div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Request</th><th>Seller</th><th>Amount</th><th>Source</th><th>Route</th><th>Top risk</th><th>Settlement</th><th>Liable</th></tr></thead>
-        <tbody id="feed"><tr><td colspan="8" class="empty">No transactions yet.</td></tr></tbody>
+        <thead>
+          <tr>
+            <th>Request ID</th>
+            <th>Seller</th>
+            <th>Amount</th>
+            <th>Source</th>
+            <th>Agent Pay alone</th>
+            <th>Route</th>
+            <th>Top Risk</th>
+            <th>Settlement</th>
+            <th>Liable Party</th>
+          </tr>
+        </thead>
+        <tbody id="feed">
+          <tr><td colspan="9" class="empty-tr">No transactions yet. Run a scenario to inspect.</td></tr>
+        </tbody>
       </table>
     </div>
-  </section>
-</main>
+  </div>
+</div>
 
-<script>
-const API = location.protocol.startsWith('http') ? '' : 'http://127.0.0.1:8000';
-const $ = s => document.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money = n => '$' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-const list = s => s.split(',').map(x => x.trim()).filter(Boolean);
+<footer>Prototype · Mastercard Agent Pay for Machines (AP4M) · Microsoft Azure Cloud · Microsoft Hackathon</footer>
+</div>
 
-const CHECK_NAMES = {provenance: 'Instruction provenance', verifier: 'Independent verifier', risk_signals: 'Seller & pattern risk'};
-const ROUTES = {
-  auto_approve: ['ok', 'Auto-approved', 'All checks passed with low risk. Payment sent to Agent Pay.'],
-  hold: ['warn', 'Held for a human', 'A check flagged this payment. Nothing moves until a person approves it.'],
-  block: ['bad', 'Blocked', 'A check blocked this payment. The money did not move.'],
-};
-const PARTY = {none: 'No one', seller: 'Seller', owner: 'Owner', verifier: 'Verifier provider', agent_developer: 'Agent developer'};
-
-let scenarios = [], active = null, runs = [], seq = 0;
-
-async function health() {
-  try {
-    const r = await fetch(API + '/health');
-    if (!r.ok) throw 0;
-    $('#hdot').className = 'dot up'; $('#htxt').textContent = 'server connected';
-  } catch {
-    $('#hdot').className = 'dot down'; $('#htxt').textContent = 'server offline · run: uvicorn app:app';
-  }
-}
-
-async function loadScenarios() {
-  try {
-    const r = await fetch(API + '/demo/scenarios');
-    scenarios = await r.json();
-  } catch { $('#err').textContent = 'Could not load scenarios from the server.'; return; }
-  $('#tabs').innerHTML = scenarios.map((s, i) =>
-    `<button data-i="${i}"><b>${esc(s.label)}</b><small>expect: ${esc(s.expect)}</small></button>`).join('');
-  $('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) pick(+b.dataset.i); };
-  pick(0);
-}
-
-function pick(i) {
-  active = scenarios[i];
-  [...$('#tabs').children].forEach((b, j) => b.classList.toggle('on', j === i));
-  const {purchase: p, mandate: m, history, delivered} = active.payload;
-  $('#m_task').value = m.task; $('#m_max').value = m.max_amount; $('#m_owner').value = m.owner_id;
-  $('#m_cats').value = m.allowed_categories.join(', '); $('#m_trusted').value = (m.trusted_instruction_sources || []).join(', ');
-  $('#p_seller_name').value = p.seller_name; $('#p_seller_id').value = p.seller_id;
-  $('#p_amount').value = p.amount; $('#p_category').value = p.category;
-  $('#p_source').value = p.instruction_source; $('#p_agent').value = p.agent_id;
-  $('#p_itext').value = p.instruction_text; $('#p_just').value = p.justification;
-  $('#h_json').value = JSON.stringify(history || [], null, 1);
-  $('#delivered').checked = delivered !== false;
-  $('#err').textContent = '';
-}
-
-function readForm() {
-  let history;
-  try { history = JSON.parse($('#h_json').value || '[]'); if (!Array.isArray(history)) throw 0; }
-  catch { throw new Error('History must be a JSON array of {seller_id, amount, timestamp}.'); }
-  const base = active.payload;
-  return {
-    mandate: {
-      ...base.mandate,
-      owner_id: $('#m_owner').value, task: $('#m_task').value, max_amount: +$('#m_max').value,
-      allowed_categories: list($('#m_cats').value), trusted_instruction_sources: list($('#m_trusted').value),
-    },
-    purchase: {
-      ...base.purchase,
-      request_id: `${base.purchase.request_id}-${++seq}`,
-      agent_id: $('#p_agent').value, seller_id: $('#p_seller_id').value, seller_name: $('#p_seller_name').value,
-      amount: +$('#p_amount').value, category: $('#p_category').value, instruction_source: $('#p_source').value,
-      instruction_text: $('#p_itext').value, justification: $('#p_just').value,
-    },
-    history,
-    delivered: $('#delivered').checked,
-  };
-}
-
-async function run() {
-  $('#err').textContent = '';
-  let payload;
-  try { payload = readForm(); } catch (e) { $('#err').textContent = e.message; return; }
-  $('#run').disabled = true;
-  try {
-    const r = await fetch(API + '/judge', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
-    const data = await r.json();
-    if (!r.ok) throw new Error(Array.isArray(data.detail) ? data.detail.map(d => `${d.loc.slice(1).join('.')}: ${d.msg}`).join('; ') : (data.detail || r.statusText));
-    runs.unshift({payload, result: data});
-    renderFeed();
-    render(0);
-  } catch (e) {
-    $('#err').textContent = 'Request failed: ' + e.message;
-  } finally { $('#run').disabled = false; }
-}
-
-function riskColor(n) { return n >= 70 ? 'var(--bad)' : n >= 40 ? 'var(--warn)' : 'var(--ok)'; }
-
-function render(idx) {
-  const {payload, result: res} = runs[idx];
-  const [tone, title, blurb] = ROUTES[res.route] || ['', res.route, ''];
-  const top = res.checks.reduce((a, c) => (c.risk > a.risk ? c : a), res.checks[0]);
-  const rc = res.receipt, st = res.settlement;
-
-  document.querySelectorAll('#flow span').forEach(s => {
-    const k = s.dataset.s;
-    s.classList.toggle('lit', k !== 'settle' || !!st);
-  });
-
-  $('#out').innerHTML = `
-    <div class="verdict ${tone}"><b>${esc(title)} · ${money(payload.purchase.amount)} to ${esc(payload.purchase.seller_name)}</b>
-      <p>${esc(blurb)} Highest risk: <strong>${top.risk}</strong> from ${esc(CHECK_NAMES[top.check_name] || top.check_name)}.</p></div>
-    <div class="checks">${res.checks.map(c => `
-      <div class="card">
-        <div class="top"><b>${esc(CHECK_NAMES[c.check_name] || c.check_name)}</b><span class="badge ${esc(c.status)}">${esc(c.status)}</span></div>
-        <div class="bar"><i style="width:${c.risk}%;background:${riskColor(c.risk)}"></i></div>
-        <div class="risk">risk ${c.risk} / 100</div>
-        <ul>${c.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
-      </div>`).join('')}
-    </div>
-    <div class="duo">
-      <div class="card">
-        <div class="top"><b>Agent Pay settlement</b>${st ? `<span class="badge pass">${esc(st.status)}</span>` : '<span class="badge block">not called</span>'}</div>
-        ${st ? `<dl><dt>Amount</dt><dd>${money(st.amount)}</dd><dt>Note</dt><dd>${esc(st.note)}</dd></dl>`
-             : `<dl><dt>Why</dt><dd>Route was <b>${esc(res.route)}</b>, so the payment never reached Agent Pay.</dd></dl>`}
-      </div>
-      <div class="card">
-        <div class="top"><b>Decision receipt</b><span class="badge ${rc.liable_party === 'none' ? 'pass' : 'block'}">liable: ${esc(PARTY[rc.liable_party] || rc.liable_party)}</span></div>
-        <dl>
-          <dt>Liability</dt><dd>${esc(rc.liability_reason)}</dd>
-          <dt>Delivered</dt><dd>${payload.delivered ? 'yes' : 'no'}</dd>
-          <dt>Request</dt><dd class="mono">${esc(rc.request_id)}</dd>
-          <dt>HMAC-SHA256</dt><dd class="mono">${esc(rc.signature)}</dd>
-        </dl>
-        <details><summary>Full signed receipt JSON</summary><pre>${esc(JSON.stringify(rc, null, 2))}</pre></details>
-      </div>
-    </div>`;
-  [...$('#feed').children].forEach((tr, j) => tr.classList.toggle('sel', j === idx));
-}
-
-function renderFeed() {
-  const n = runs.length, by = k => runs.filter(r => r.result.route === k);
-  const stopped = [...by('block'), ...by('hold')].reduce((a, r) => a + r.payload.purchase.amount, 0);
-  const sellerLiable = runs.filter(r => r.result.receipt.liable_party === 'seller').length;
-  $('#metrics').innerHTML = [
-    [n, 'payments judged'], [by('auto_approve').length, 'auto-approved'], [by('hold').length, 'held for a human'],
-    [by('block').length, 'blocked'], [money(stopped), 'kept from moving'], [sellerLiable, 'seller liable'],
-  ].map(([v, l]) => `<div class="metric"><b>${v}</b><span>${l}</span></div>`).join('');
-
-  $('#feed').innerHTML = n ? runs.map((r, i) => {
-    const p = r.payload.purchase, res = r.result, top = Math.max(...res.checks.map(c => c.risk));
-    return `<tr data-i="${i}"><td class="mono">${esc(p.request_id)}</td><td>${esc(p.seller_name)}</td><td>${money(p.amount)}</td>
-      <td>${esc(p.instruction_source)}</td><td><span class="badge ${esc(res.route)}">${esc(res.route.replace('_', ' '))}</span></td>
-      <td style="color:${riskColor(top)};font-weight:600">${top}</td><td>${esc(res.settlement ? res.settlement.status : '—')}</td>
-      <td>${esc(PARTY[res.receipt.liable_party] || res.receipt.liable_party)}</td></tr>`;
-  }).join('') : '<tr><td colspan="8" class="empty">No transactions yet.</td></tr>';
-}
-
-$('#feed').onclick = e => { const tr = e.target.closest('tr[data-i]'); if (tr) render(+tr.dataset.i); };
-$('#run').onclick = run;
-renderFeed();
-health();
-loadScenarios();
-</script>
+<script src="static/js/util.js"></script>
+<script src="static/js/control-room.js"></script>
+<script src="static/js/phone.js"></script>
+<script src="static/js/app.js"></script>
 </body>
 </html>

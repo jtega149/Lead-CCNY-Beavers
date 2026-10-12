@@ -99,16 +99,16 @@ class _SettleIn(BaseModel):
 def settle(request_id: str, amount: float, route: str) -> Settlement:
     """
     Settlement logic:
-    - If route != 'auto_approve' -> status 'refused'
+    - If route is not 'auto_approve' / 'human_approve' -> status 'refused'
     - amount >= 100              -> status 'escrow' (held until delivery is confirmed)
     - amount < 100               -> status 'clawback_window' (settled instantly, reversible)
     """
-    if route != "auto_approve":
+    if route not in ("auto_approve", "human_approve"):
         s = Settlement(
             request_id=request_id,
             status="refused",
             amount=amount,
-            note="Gateway did not auto-approve; payment refused.",
+            note="Gateway did not approve; payment refused.",
         )
     elif amount >= 100.0:
         s = Settlement(
